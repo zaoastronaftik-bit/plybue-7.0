@@ -1,0 +1,957 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ZENMARKET</title>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;700;900&family=Geologica:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #12121a;
+    --surface2: #1a1a26;
+    --border: #2a2a3f;
+    --accent: #7c6ff7;
+    --accent2: #ff6b6b;
+    --text: #e8e8f0;
+    --muted: #6b6b8a;
+    --green: #4ade80;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family: 'Geologica', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  body::before {
+    content:'';
+    position:fixed;
+    inset:0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events:none;
+    z-index:1000;
+    opacity:.5;
+  }
+  #authScreen {
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex-direction:column;
+    position:relative;
+  }
+  .auth-glow {
+    position:absolute;
+    width:600px; height:600px;
+    background: radial-gradient(circle, rgba(124,111,247,.15) 0%, transparent 70%);
+    pointer-events:none;
+    top:50%; left:50%;
+    transform:translate(-50%,-50%);
+  }
+  .auth-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius:20px;
+    padding:48px 40px;
+    width:420px;
+    position:relative;
+    animation: fadeUp .5s ease;
+  }
+  @keyframes fadeUp {
+    from { opacity:0; transform:translateY(20px); }
+    to   { opacity:1; transform:translateY(0); }
+  }
+  .auth-logo {
+    font-family:'Unbounded',sans-serif;
+    font-size:28px;
+    font-weight:900;
+    letter-spacing:-1px;
+    text-align:center;
+    margin-bottom:8px;
+  }
+  .auth-logo span { color: var(--accent); }
+  .auth-sub {
+    text-align:center;
+    color:var(--muted);
+    font-size:13px;
+    margin-bottom:32px;
+  }
+  .role-select {
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+    margin-bottom:24px;
+  }
+  .role-btn {
+    padding:14px;
+    border-radius:12px;
+    border:2px solid var(--border);
+    background:transparent;
+    color:var(--muted);
+    font-family:'Geologica',sans-serif;
+    font-size:14px;
+    cursor:pointer;
+    transition:.2s;
+    text-align:center;
+  }
+  .role-btn:hover { border-color: var(--accent); color:var(--text); }
+  .role-btn.active { border-color: var(--accent); color:var(--text); background: rgba(124,111,247,.1); }
+  .role-icon { font-size:22px; display:block; margin-bottom:4px; }
+  .auth-tabs {
+    display:flex;
+    gap:0;
+    background:var(--surface2);
+    border-radius:10px;
+    padding:4px;
+    margin-bottom:24px;
+  }
+  .tab-btn {
+    flex:1;
+    padding:9px;
+    border:none;
+    background:transparent;
+    color:var(--muted);
+    font-family:'Geologica',sans-serif;
+    font-size:13px;
+    border-radius:7px;
+    cursor:pointer;
+    transition:.2s;
+  }
+  .tab-btn.active { background:var(--accent); color:#fff; }
+  .inp-group { margin-bottom:14px; }
+  .inp-group label { font-size:12px; color:var(--muted); display:block; margin-bottom:6px; letter-spacing:.5px; text-transform:uppercase; }
+  .inp-group input {
+    width:100%;
+    padding:12px 14px;
+    background:var(--surface2);
+    border:1px solid var(--border);
+    border-radius:10px;
+    color:var(--text);
+    font-family:'Geologica',sans-serif;
+    font-size:14px;
+    outline:none;
+    transition:.2s;
+  }
+  .inp-group input:focus { border-color:var(--accent); }
+  .btn-primary {
+    width:100%;
+    padding:14px;
+    background: var(--accent);
+    border:none;
+    border-radius:12px;
+    color:#fff;
+    font-family:'Unbounded',sans-serif;
+    font-size:13px;
+    font-weight:700;
+    cursor:pointer;
+    transition:.2s;
+    margin-top:4px;
+  }
+  .btn-primary:hover { background:#6a5de8; transform:translateY(-1px); }
+  .btn-primary:active { transform:translateY(0); }
+  .error-msg {
+    color:var(--accent2);
+    font-size:12px;
+    text-align:center;
+    margin-top:12px;
+    min-height:18px;
+  }
+  #app { display:none; min-height:100vh; }
+  .header {
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:16px 32px;
+    border-bottom:1px solid var(--border);
+    background:rgba(10,10,15,.8);
+    backdrop-filter:blur(12px);
+    position:sticky; top:0; z-index:100;
+  }
+  .header-logo {
+    font-family:'Unbounded',sans-serif;
+    font-size:18px;
+    font-weight:900;
+  }
+  .header-logo span { color:var(--accent); }
+  .header-user {
+    display:flex;
+    align-items:center;
+    gap:12px;
+  }
+  .user-badge {
+    background:var(--surface2);
+    border:1px solid var(--border);
+    border-radius:8px;
+    padding:6px 14px;
+    font-size:13px;
+    color:var(--muted);
+  }
+  .user-badge b { color:var(--text); }
+  .btn-logout {
+    padding:7px 16px;
+    background:transparent;
+    border:1px solid var(--border);
+    border-radius:8px;
+    color:var(--muted);
+    font-family:'Geologica',sans-serif;
+    font-size:12px;
+    cursor:pointer;
+    transition:.2s;
+  }
+  .btn-logout:hover { border-color:var(--accent2); color:var(--accent2); }
+  .nav-tabs {
+    display:flex;
+    gap:0;
+    padding:0 32px;
+    border-bottom:1px solid var(--border);
+    background:var(--surface);
+  }
+  .nav-tab {
+    padding:14px 24px;
+    background:none;
+    border:none;
+    color:var(--muted);
+    font-family:'Geologica',sans-serif;
+    font-size:14px;
+    cursor:pointer;
+    border-bottom:2px solid transparent;
+    margin-bottom:-1px;
+    transition:.2s;
+  }
+  .nav-tab.active { color:var(--accent); border-bottom-color:var(--accent); }
+  .nav-tab:hover { color:var(--text); }
+  .page { display:none; padding:40px 32px; max-width:1100px; margin:0 auto; }
+  .page.active { display:block; animation: fadeUp .3s ease; }
+  .page-title {
+    font-family:'Unbounded',sans-serif;
+    font-size:22px;
+    font-weight:700;
+    margin-bottom:28px;
+    letter-spacing:-0.5px;
+  }
+  .page-title span { color:var(--accent); }
+  .listings-grid {
+    display:grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px,1fr));
+    gap:20px;
+  }
+  .listing-card {
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:16px;
+    overflow:hidden;
+    transition:.25s;
+    position:relative;
+  }
+  .listing-card:hover { border-color:var(--accent); transform:translateY(-3px); box-shadow:0 12px 40px rgba(124,111,247,.15); }
+  .listing-img {
+    width:100%;
+    height:160px;
+    background:var(--surface2);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:48px;
+  }
+  .listing-body { padding:18px; }
+  .listing-tag {
+    display:inline-block;
+    padding:3px 10px;
+    border-radius:20px;
+    font-size:11px;
+    background:rgba(124,111,247,.15);
+    color:var(--accent);
+    margin-bottom:8px;
+  }
+  .listing-name {
+    font-family:'Unbounded',sans-serif;
+    font-size:15px;
+    font-weight:700;
+    margin-bottom:6px;
+  }
+  .listing-desc {
+    font-size:13px;
+    color:var(--muted);
+    margin-bottom:14px;
+    line-height:1.5;
+  }
+  .listing-footer {
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+  }
+  .listing-price {
+    font-family:'Unbounded',sans-serif;
+    font-size:17px;
+    font-weight:700;
+    color:var(--green);
+  }
+  .btn-buy {
+    padding:8px 18px;
+    background:var(--accent);
+    border:none;
+    border-radius:8px;
+    color:#fff;
+    font-family:'Geologica',sans-serif;
+    font-size:13px;
+    font-weight:500;
+    cursor:pointer;
+    transition:.2s;
+  }
+  .btn-buy:hover { background:#6a5de8; }
+  .orders-list { display:flex; flex-direction:column; gap:14px; }
+  .order-card {
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:14px;
+    padding:20px 24px;
+    display:flex;
+    align-items:center;
+    gap:16px;
+    flex-wrap:wrap;
+  }
+  .order-num {
+    font-family:'Unbounded',sans-serif;
+    font-size:20px;
+    color:var(--accent);
+    font-weight:900;
+    min-width:36px;
+    text-align:center;
+  }
+  .order-info { flex:1; }
+  .order-item { font-weight:500; font-size:15px; margin-bottom:4px; }
+  .order-meta { font-size:12px; color:var(--muted); }
+  .order-meta b { color:var(--text); }
+  .order-comment {
+    margin-top:6px;
+    font-size:13px;
+    color:var(--muted);
+    font-style:italic;
+  }
+  .order-comment span { color:var(--text); }
+  .order-price {
+    font-family:'Unbounded',sans-serif;
+    font-size:16px;
+    color:var(--green);
+    font-weight:700;
+    white-space:nowrap;
+  }
+  .order-actions { display:flex; gap:8px; align-items:center; }
+  .btn-chat {
+    padding:8px 16px;
+    background:var(--accent);
+    border:none;
+    border-radius:8px;
+    color:#fff;
+    font-size:12px;
+    cursor:pointer;
+  }
+  .btn-chat:hover { background:#6a5de8; }
+  .empty-state {
+    text-align:center;
+    padding:60px;
+    color:var(--muted);
+    font-size:14px;
+  }
+  .empty-icon { font-size:48px; display:block; margin-bottom:12px; }
+  .chat-area {
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:12px;
+    background:var(--surface2);
+    max-height:300px;
+    overflow-y:auto;
+    margin-bottom:12px;
+  }
+  .chat-msg {
+    margin-bottom:10px;
+  }
+  .chat-msg .author {
+    font-weight:700;
+    font-size:12px;
+    color:var(--accent);
+  }
+  .chat-msg .text {
+    font-size:13px;
+    color:var(--text);
+    background:var(--surface);
+    padding:8px 12px;
+    border-radius:10px;
+    display:inline-block;
+    margin-top:2px;
+  }
+  .chat-input-row {
+    display:flex;
+    gap:8px;
+  }
+  .chat-input-row input {
+    flex:1;
+    padding:10px;
+    background:var(--surface2);
+    border:1px solid var(--border);
+    border-radius:8px;
+    color:var(--text);
+  }
+  .chat-input-row button {
+    padding:10px 16px;
+    background:var(--accent);
+    border:none;
+    border-radius:8px;
+    color:#fff;
+    cursor:pointer;
+  }
+  .modal-overlay {
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.7);
+    backdrop-filter:blur(8px);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    z-index:500;
+    display:none;
+  }
+  .modal-overlay.open { display:flex; }
+  .modal {
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:20px;
+    padding:36px;
+    width:460px;
+    animation: fadeUp .3s ease;
+    position:relative;
+    max-height:90vh;
+    overflow-y:auto;
+  }
+  .modal-title {
+    font-family:'Unbounded',sans-serif;
+    font-size:17px;
+    font-weight:700;
+    margin-bottom:6px;
+  }
+  .modal-item-name { color:var(--accent); margin-bottom:20px; font-size:13px; }
+  .modal-close {
+    position:absolute;
+    top:16px; right:16px;
+    background:var(--surface2);
+    border:none;
+    border-radius:8px;
+    width:32px; height:32px;
+    color:var(--muted);
+    font-size:16px;
+    cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .modal-close:hover { color:var(--text); }
+  .badge-admin {
+    display:inline-block;
+    padding:2px 8px;
+    background:rgba(255,107,107,.15);
+    color:var(--accent2);
+    border-radius:6px;
+    font-size:11px;
+    margin-left:6px;
+    vertical-align:middle;
+  }
+  .orders-header {
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:24px;
+  }
+  .orders-count {
+    background:var(--surface2);
+    border:1px solid var(--border);
+    border-radius:8px;
+    padding:6px 14px;
+    font-size:13px;
+    color:var(--muted);
+  }
+  .orders-count b { color:var(--green); }
+  .btn-refresh {
+    padding:8px 16px;
+    background:transparent;
+    border:1px solid var(--border);
+    border-radius:8px;
+    color:var(--muted);
+    font-size:12px;
+    cursor:pointer;
+    transition:.2s;
+  }
+  .btn-refresh:hover { border-color:var(--accent); color:var(--accent); }
+  .loading { text-align:center; padding:40px; color:var(--muted); font-size:14px; }
+</style>
+</head>
+<body>
+
+<div id="authScreen">
+  <div class="auth-glow"></div>
+  <div class="auth-card">
+    <div class="auth-logo">ZEN<span>MARKET</span></div>
+    <div class="auth-sub">Торговая площадка</div>
+    <div class="role-select">
+      <button class="role-btn active" id="roleUser" onclick="selectRole('user')">
+        <span class="role-icon">👤</span>Пользователь
+      </button>
+      <button class="role-btn" id="roleAdmin" onclick="selectRole('admin')">
+        <span class="role-icon">🛡️</span>Администратор
+      </button>
+    </div>
+    <div class="auth-tabs">
+      <button class="tab-btn active" id="tabLogin" onclick="switchTab('login')">Вход</button>
+      <button class="tab-btn" id="tabReg" onclick="switchTab('reg')">Регистрация</button>
+    </div>
+    <div class="inp-group">
+      <label>Никнейм</label>
+      <input type="text" id="authNick" placeholder="твой_ник">
+    </div>
+    <div class="inp-group">
+      <label>Пароль</label>
+      <input type="password" id="authPass" placeholder="••••••••" onkeydown="if(e.key==='Enter')doAuth()">
+    </div>
+    <button class="btn-primary" onclick="doAuth()">Войти</button>
+    <div class="error-msg" id="authError"></div>
+  </div>
+</div>
+
+<div id="app">
+  <header class="header">
+    <div class="header-logo">ZEN<span>MARKET</span></div>
+    <div class="header-user">
+      <div class="user-badge">Вы: <b id="dispNick">—</b><span id="adminBadge" class="badge-admin" style="display:none">ADMIN</span></div>
+      <button class="btn-logout" onclick="logout()">Выйти</button>
+    </div>
+  </header>
+  <nav class="nav-tabs" id="navTabs">
+    <button class="nav-tab active" onclick="showPage('shop')">🛒 Объявления</button>
+    <button class="nav-tab" id="ordersTab" style="display:none" onclick="showPage('orders')">📋 Заказы</button>
+    <button class="nav-tab" id="myOrdersTab" style="display:none" onclick="showPage('myorders')">📦 Мои заказы</button>
+  </nav>
+  <div class="page active" id="pageShop">
+    <div class="page-title"><span>Актуальные</span> объявления</div>
+    <div class="listings-grid" id="listingsGrid"></div>
+  </div>
+  <div class="page" id="pageOrders">
+    <div class="orders-header">
+      <div class="page-title" style="margin:0"><span>Заказы</span></div>
+      <div style="display:flex;gap:10px;align-items:center">
+        <div class="orders-count">Всего: <b id="ordersCountBadge">0</b></div>
+        <button class="btn-refresh" onclick="loadOrders()">↻ Обновить</button>
+      </div>
+    </div>
+    <div id="ordersList" class="orders-list"><div class="loading">Загрузка...</div></div>
+  </div>
+  <div class="page" id="pageMyorders">
+    <div class="page-title"><span>Мои</span> заказы</div>
+    <div id="myOrdersList" class="orders-list"><div class="loading">Загрузка...</div></div>
+  </div>
+</div>
+
+<!-- Модалка покупки -->
+<div class="modal-overlay" id="buyModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div class="modal-title">Подтверждение покупки</div>
+    <div class="modal-item-name" id="modalItemName"></div>
+    <div class="inp-group">
+      <label>Ваш пароль (подтверждение)</label>
+      <input type="password" id="buyPass" placeholder="••••••••">
+    </div>
+    <div class="inp-group">
+      <label>Комментарий к заказу</label>
+      <input type="text" id="buyComment" placeholder="Пожелания, контакт...">
+    </div>
+    <button class="btn-primary" id="buySubmitBtn" onclick="submitOrder()">Оформить заказ</button>
+    <div class="error-msg" id="buyError"></div>
+  </div>
+</div>
+
+<!-- Модалка чата -->
+<div class="modal-overlay" id="chatModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeChatModal()">✕</button>
+    <div class="modal-title">Чат по заказу <span id="chatOrderId"></span></div>
+    <div class="chat-area" id="chatMessages"></div>
+    <div class="chat-input-row">
+      <input type="text" id="chatInput" placeholder="Введите сообщение...">
+      <button onclick="sendChatMessage()">Отправить</button>
+    </div>
+    <div class="error-msg" id="chatError"></div>
+  </div>
+</div>
+
+<script>
+// ⚙️ ТВОИ НОВЫЕ РАБОЧИЕ КЛЮЧИ
+const JSONBIN_KEY = '$2a$10$0z33XFdq7d10TIBLqWAttubIsCdbksLxuOcqV.PfM4KVHyVoTqFQ6';
+const JSONBIN_BIN = '6a0b403cee5a733b12dd19d1';
+const API = `https://api.jsonbin.io/v3/b/${JSONBIN_BIN}`;
+
+// 📝 ОБЪЯВЛЕНИЯ
+const LISTINGS = [
+  {
+    id: 1,
+    emoji: '🛠️',
+    tag: 'Услуга',
+    name: 'Свой заказ (BS)',
+    desc: 'Любой ваш заказ по Brawl Stars — скины, гемы, буст. Цена договорная.',
+    price: 'Договорная'
+  },
+  {
+    id: 2,
+    emoji: '🎫',
+    tag: 'Пропуск',
+    name: 'Бравл Пасс',
+    desc: 'Brawl Pass на текущий сезон',
+    price: '1350 ₽'
+  },
+  {
+    id: 3,
+    emoji: '⭐',
+    tag: 'Пропуск',
+    name: 'Бравл Пасс Про',
+    desc: 'Brawl Pass Pro с бонусами',
+    price: '1750 ₽'
+  },
+];
+
+// Хранилище пользователей
+function getUsers() { return JSON.parse(localStorage.getItem('zm_users') || '{}'); }
+function saveUsers(u) { localStorage.setItem('zm_users', JSON.stringify(u)); }
+
+function getMyOrderIds() {
+  const raw = localStorage.getItem('zm_myorders_' + (currentUser?.nick || ''));
+  return raw ? JSON.parse(raw) : [];
+}
+function addMyOrderId(orderId) {
+  const ids = getMyOrderIds();
+  if (!ids.includes(orderId)) {
+    ids.push(orderId);
+    localStorage.setItem('zm_myorders_' + currentUser.nick, JSON.stringify(ids));
+  }
+}
+
+let currentUser = null;
+let currentListing = null;
+let activeTab = 'login';
+let activeRole = 'user';
+
+function selectRole(r) {
+  activeRole = r;
+  document.getElementById('roleUser').classList.toggle('active', r==='user');
+  document.getElementById('roleAdmin').classList.toggle('active', r==='admin');
+  document.getElementById('tabReg').style.display = r==='admin' ? 'none' : '';
+  if (r==='admin') switchTab('login');
+}
+
+function switchTab(t) {
+  activeTab = t;
+  document.getElementById('tabLogin').classList.toggle('active', t==='login');
+  document.getElementById('tabReg').classList.toggle('active', t==='reg');
+  document.getElementById('authError').textContent = '';
+}
+
+function doAuth() {
+  const nick = document.getElementById('authNick').value.trim();
+  const pass = document.getElementById('authPass').value;
+  const err = document.getElementById('authError');
+  err.textContent = '';
+
+  if (!nick || !pass) { err.textContent = 'Заполни все поля'; return; }
+  if (activeRole === 'admin') {
+    if (pass !== 'zenin') { err.textContent = 'Неверный пароль администратора'; return; }
+    login(nick, pass, 'admin');
+    return;
+  }
+
+  const users = getUsers();
+  if (activeTab === 'reg') {
+    if (users[nick]) { err.textContent = 'Ник уже занят'; return; }
+    users[nick] = pass;
+    saveUsers(users);
+    login(nick, pass, 'user');
+  } else {
+    if (!users[nick]) { err.textContent = 'Пользователь не найден'; return; }
+    if (users[nick] !== pass) { err.textContent = 'Неверный пароль'; return; }
+    login(nick, pass, 'user');
+  }
+}
+
+function login(nick, pass, role) {
+  currentUser = { nick, pass, role };
+  document.getElementById('authScreen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  document.getElementById('dispNick').textContent = nick;
+
+  document.getElementById('adminBadge').style.display = role === 'admin' ? 'inline' : 'none';
+  document.getElementById('ordersTab').style.display = role === 'admin' ? 'inline-block' : 'none';
+  document.getElementById('myOrdersTab').style.display = role === 'user' ? 'inline-block' : 'none';
+
+  renderListings();
+}
+
+function logout() {
+  currentUser = null;
+  document.getElementById('authScreen').style.display = 'flex';
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('adminBadge').style.display = 'none';
+  document.getElementById('ordersTab').style.display = 'none';
+  document.getElementById('myOrdersTab').style.display = 'none';
+  document.getElementById('authError').textContent = '';
+  showPage('shop');
+}
+
+function showPage(p) {
+  document.querySelectorAll('.page').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(el => el.classList.remove('active'));
+  const pageId = p === 'myorders' ? 'pageMyorders' : 'page' + p.charAt(0).toUpperCase() + p.slice(1);
+  document.getElementById(pageId).classList.add('active');
+  document.querySelector(`.nav-tab[onclick="showPage('${p}')"]`).classList.add('active');
+  if (p === 'orders') loadOrders();
+  if (p === 'myorders') loadMyOrders();
+}
+
+function renderListings() {
+  const grid = document.getElementById('listingsGrid');
+  grid.innerHTML = LISTINGS.map(l => `
+    <div class="listing-card">
+      <div class="listing-img">${l.emoji}</div>
+      <div class="listing-body">
+        <div class="listing-tag">${l.tag}</div>
+        <div class="listing-name">${l.name}</div>
+        <div class="listing-desc">${l.desc}</div>
+        <div class="listing-footer">
+          <div class="listing-price">${l.price}</div>
+          <button class="btn-buy" onclick="openBuy(${l.id})">Купить</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function openBuy(id) {
+  currentListing = LISTINGS.find(l => l.id === id);
+  document.getElementById('modalItemName').textContent = `${currentListing.emoji} ${currentListing.name} — ${currentListing.price}`;
+  document.getElementById('buyPass').value = '';
+  document.getElementById('buyComment').value = '';
+  document.getElementById('buyError').textContent = '';
+  document.getElementById('buyModal').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('buyModal').classList.remove('open');
+}
+
+async function submitOrder() {
+  const pass = document.getElementById('buyPass').value;
+  const comment = document.getElementById('buyComment').value.trim();
+  const err = document.getElementById('buyError');
+  err.textContent = '';
+
+  if (currentUser.role === 'user') {
+    const users = getUsers();
+    if (users[currentUser.nick] !== pass) { err.textContent = 'Неверный пароль'; return; }
+  } else {
+    if (pass !== 'zenin') { err.textContent = 'Неверный пароль'; return; }
+  }
+
+  const btn = document.getElementById('buySubmitBtn');
+  btn.textContent = 'Отправка...'; btn.disabled = true;
+
+  try {
+    const getRes = await fetch(API + '/latest', { headers: { 'X-Access-Key': JSONBIN_KEY } });
+    if (!getRes.ok) throw new Error(`Ошибка ${getRes.status}: ${getRes.statusText}`);
+    const getData = await getRes.json();
+    const orders = getData.record.orders || [];
+    const newOrder = {
+      id: Date.now(),
+      user: currentUser.nick,
+      item: currentListing.name,
+      price: currentListing.price,
+      comment: comment || '—',
+      date: new Date().toLocaleString('ru'),
+      chat: []
+    };
+    orders.push(newOrder);
+    const putRes = await fetch(API, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'X-Access-Key': JSONBIN_KEY },
+      body: JSON.stringify({ orders })
+    });
+    if (!putRes.ok) throw new Error(`Ошибка сохранения ${putRes.status}`);
+
+    addMyOrderId(newOrder.id);
+    closeModal();
+    openChatForOrder(newOrder.id);
+  } catch(e) {
+    console.error(e);
+    err.textContent = 'Ошибка: ' + (e.message || 'Сеть недоступна');
+  } finally {
+    btn.textContent = 'Оформить заказ'; btn.disabled = false;
+  }
+}
+
+async function loadMyOrders() {
+  const list = document.getElementById('myOrdersList');
+  list.innerHTML = '<div class="loading">Загрузка...</div>';
+  const ids = getMyOrderIds();
+  if (ids.length === 0) {
+    list.innerHTML = '<div class="empty-state"><span class="empty-icon">📭</span>У вас пока нет заказов</div>';
+    return;
+  }
+  try {
+    const res = await fetch(API + '/latest', { headers: { 'X-Access-Key': JSONBIN_KEY } });
+    if (!res.ok) throw new Error(`Ошибка ${res.status}`);
+    const data = await res.json();
+    const allOrders = data.record.orders || [];
+    const myOrders = allOrders.filter(o => ids.includes(o.id)).reverse();
+    if (myOrders.length === 0) {
+      list.innerHTML = '<div class="empty-state"><span class="empty-icon">📭</span>Заказы не найдены</div>';
+      return;
+    }
+    list.innerHTML = myOrders.map(o => `
+      <div class="order-card">
+        <div class="order-num">#${o.id.toString().slice(-4)}</div>
+        <div class="order-info">
+          <div class="order-item">${o.item}</div>
+          <div class="order-meta">🕐 ${o.date}</div>
+          <div class="order-comment">💬 <span>${o.comment}</span></div>
+        </div>
+        <div class="order-price">${o.price}</div>
+        <button class="btn-chat" onclick="openChatForOrder(${o.id})">💬 Чат</button>
+      </div>
+    `).join('');
+  } catch(e) {
+    console.error(e);
+    list.innerHTML = `<div class="empty-state"><span class="empty-icon">❌</span>Ошибка: ${e.message}</div>`;
+  }
+}
+
+async function loadOrders() {
+  const list = document.getElementById('ordersList');
+  list.innerHTML = '<div class="loading">Загрузка заказов...</div>';
+  try {
+    const res = await fetch(API + '/latest', { headers: { 'X-Access-Key': JSONBIN_KEY } });
+    if (!res.ok) throw new Error(`Ошибка ${res.status}`);
+    const data = await res.json();
+    const orders = (data.record.orders || []).reverse();
+    document.getElementById('ordersCountBadge').textContent = orders.length;
+    if (!orders.length) {
+      list.innerHTML = '<div class="empty-state"><span class="empty-icon">📭</span>Заказов пока нет</div>';
+      return;
+    }
+    list.innerHTML = orders.map(o => `
+      <div class="order-card">
+        <div class="order-num">#${o.id.toString().slice(-4)}</div>
+        <div class="order-info">
+          <div class="order-item">${o.item}</div>
+          <div class="order-meta">👤 <b>${o.user}</b> · 🕐 ${o.date}</div>
+          <div class="order-comment">💬 <span>${o.comment}</span></div>
+        </div>
+        <div class="order-price">${o.price}</div>
+        <div class="order-actions">
+          <button class="btn-chat" onclick="openChatForOrder(${o.id})">💬 Чат (${o.chat ? o.chat.length : 0})</button>
+        </div>
+      </div>
+    `).join('');
+  } catch(e) {
+    console.error(e);
+    list.innerHTML = `<div class="empty-state"><span class="empty-icon">❌</span>Ошибка: ${e.message}</div>`;
+  }
+}
+
+let currentChatOrderId = null;
+
+async function openChatForOrder(orderId) {
+  currentChatOrderId = orderId;
+  document.getElementById('chatOrderId').textContent = '#' + orderId.toString().slice(-4);
+  document.getElementById('chatMessages').innerHTML = 'Загрузка...';
+  document.getElementById('chatInput').value = '';
+  document.getElementById('chatError').textContent = '';
+  document.getElementById('chatModal').classList.add('open');
+  await refreshChat();
+}
+
+function closeChatModal() {
+  document.getElementById('chatModal').classList.remove('open');
+}
+
+async function refreshChat() {
+  const orderId = currentChatOrderId;
+  const chatDiv = document.getElementById('chatMessages');
+  try {
+    const res = await fetch(API + '/latest', { headers: { 'X-Access-Key': JSONBIN_KEY } });
+    if (!res.ok) throw new Error(`Ошибка ${res.status}`);
+    const data = await res.json();
+    const orders = data.record.orders || [];
+    const order = orders.find(o => o.id === orderId);
+    if (!order) {
+      chatDiv.innerHTML = 'Заказ не найден';
+      return;
+    }
+    const messages = order.chat || [];
+    if (messages.length === 0) {
+      chatDiv.innerHTML = '<div style="color:var(--muted)">Пока нет сообщений. Напишите первым.</div>';
+      return;
+    }
+    chatDiv.innerHTML = messages.map(m => `
+      <div class="chat-msg">
+        <div class="author">${m.author} (${m.role})</div>
+        <div class="text">${m.text}</div>
+        <div style="font-size:10px;color:var(--muted)">${m.time}</div>
+      </div>
+    `).join('');
+    chatDiv.scrollTop = chatDiv.scrollHeight;
+  } catch(e) {
+    chatDiv.innerHTML = `Ошибка загрузки чата: ${e.message}`;
+  }
+}
+
+async function sendChatMessage() {
+  const text = document.getElementById('chatInput').value.trim();
+  const err = document.getElementById('chatError');
+  err.textContent = '';
+  if (!text) return;
+  if (!currentUser) return;
+
+  try {
+    const res = await fetch(API + '/latest', { headers: { 'X-Access-Key': JSONBIN_KEY } });
+    if (!res.ok) throw new Error(`Ошибка ${res.status}`);
+    const data = await res.json();
+    let orders = data.record.orders || [];
+    const idx = orders.findIndex(o => o.id === currentChatOrderId);
+    if (idx === -1) {
+      err.textContent = 'Заказ не найден';
+      return;
+    }
+    if (!orders[idx].chat) orders[idx].chat = [];
+    orders[idx].chat.push({
+      author: currentUser.nick,
+      role: currentUser.role,
+      text: text,
+      time: new Date().toLocaleString('ru')
+    });
+
+    const putRes = await fetch(API, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'X-Access-Key': JSONBIN_KEY },
+      body: JSON.stringify({ orders })
+    });
+    if (!putRes.ok) throw new Error(`Ошибка сохранения ${putRes.status}`);
+    document.getElementById('chatInput').value = '';
+    await refreshChat();
+  } catch(e) {
+    err.textContent = 'Ошибка отправки: ' + e.message;
+  }
+}
+
+document.getElementById('buyModal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+document.getElementById('chatModal').addEventListener('click', function(e) {
+  if (e.target === this) closeChatModal();
+});
+</script>
+</body>
+</html>
