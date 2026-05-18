@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>ZENMARKET</title>
 <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;700;900&family=Geologica:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
@@ -16,6 +16,7 @@
     --text: #e8e8f0;
     --muted: #6b6b8a;
     --green: #4ade80;
+    --nav-height: 60px;
   }
   body.theme-light {
     --bg: #f0f0f5;
@@ -46,6 +47,7 @@
     color: var(--text);
     min-height: 100vh;
     overflow-x: hidden;
+    transition: background 0.3s, color 0.3s;
   }
   body::before { content:''; position:fixed; inset:0; background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E"); pointer-events:none; z-index:1000; opacity:.5; }
   #authScreen { min-height:100vh; display:flex; align-items:center; justify-content:center; flex-direction:column; position:relative; }
@@ -56,16 +58,16 @@
   .auth-logo span { color: var(--accent); }
   .auth-sub { text-align:center; color:var(--muted); font-size:13px; margin-bottom:32px; }
   .role-select { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:24px; }
-  .role-btn { padding:14px; border-radius:12px; border:2px solid var(--border); background:transparent; color:var(--muted); font-family:'Geologica',sans-serif; font-size:14px; cursor:pointer; transition:.2s; text-align:center; }
+  .role-btn { padding:14px; border-radius:12px; border:2px solid var(--border); background:transparent; color:var(--muted); font-size:14px; cursor:pointer; transition:.2s; text-align:center; }
   .role-btn:hover { border-color: var(--accent); color:var(--text); }
   .role-btn.active { border-color: var(--accent); color:var(--text); background: rgba(124,111,247,.1); }
   .role-icon { font-size:22px; display:block; margin-bottom:4px; }
   .auth-tabs { display:flex; gap:0; background:var(--surface2); border-radius:10px; padding:4px; margin-bottom:24px; }
-  .tab-btn { flex:1; padding:9px; border:none; background:transparent; color:var(--muted); font-family:'Geologica',sans-serif; font-size:13px; border-radius:7px; cursor:pointer; transition:.2s; }
+  .tab-btn { flex:1; padding:9px; border:none; background:transparent; color:var(--muted); font-size:13px; border-radius:7px; cursor:pointer; transition:.2s; }
   .tab-btn.active { background:var(--accent); color:#fff; }
   .inp-group { margin-bottom:14px; }
   .inp-group label { font-size:12px; color:var(--muted); display:block; margin-bottom:6px; letter-spacing:.5px; text-transform:uppercase; }
-  .inp-group input { width:100%; padding:12px 14px; background:var(--surface2); border:1px solid var(--border); border-radius:10px; color:var(--text); font-family:'Geologica',sans-serif; font-size:14px; outline:none; transition:.2s; }
+  .inp-group input { width:100%; padding:12px 14px; background:var(--surface2); border:1px solid var(--border); border-radius:10px; color:var(--text); font-size:14px; outline:none; transition:.2s; }
   .inp-group input:focus { border-color:var(--accent); }
   .btn-primary { width:100%; padding:14px; background: var(--accent); border:none; border-radius:12px; color:#fff; font-family:'Unbounded',sans-serif; font-size:13px; font-weight:700; cursor:pointer; transition:.2s; margin-top:4px; }
   .btn-primary:hover { background:#6a5de8; transform:translateY(-1px); }
@@ -78,10 +80,10 @@
   .header-user { display:flex; align-items:center; gap:12px; }
   .user-badge { background:var(--surface2); border:1px solid var(--border); border-radius:8px; padding:6px 14px; font-size:13px; color:var(--muted); }
   .user-badge b { color:var(--text); }
-  .btn-logout { padding:7px 16px; background:transparent; border:1px solid var(--border); border-radius:8px; color:var(--muted); font-family:'Geologica',sans-serif; font-size:12px; cursor:pointer; transition:.2s; }
+  .btn-logout { padding:7px 16px; background:transparent; border:1px solid var(--border); border-radius:8px; color:var(--muted); font-size:12px; cursor:pointer; transition:.2s; }
   .btn-logout:hover { border-color:var(--accent2); color:var(--accent2); }
   .nav-tabs { display:flex; gap:0; padding:0 32px; border-bottom:1px solid var(--border); background:var(--surface); }
-  .nav-tab { padding:14px 24px; background:none; border:none; color:var(--muted); font-family:'Geologica',sans-serif; font-size:14px; cursor:pointer; border-bottom:2px solid transparent; margin-bottom:-1px; transition:.2s; }
+  .nav-tab { padding:14px 24px; background:none; border:none; color:var(--muted); font-size:14px; cursor:pointer; border-bottom:2px solid transparent; margin-bottom:-1px; transition:.2s; }
   .nav-tab.active { color:var(--accent); border-bottom-color:var(--accent); }
   .nav-tab:hover { color:var(--text); }
   .page { display:none; padding:40px 32px; max-width:1100px; margin:0 auto; }
@@ -91,16 +93,16 @@
   .filters { display:flex; gap:12px; margin-bottom:24px; flex-wrap:wrap; }
   .filters select, .filters input { padding:10px 14px; background:var(--surface2); border:1px solid var(--border); border-radius:8px; color:var(--text); font-size:13px; }
   .listings-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(280px,1fr)); gap:20px; }
-  .listing-card { background:var(--surface); border:1px solid var(--border); border-radius:16px; overflow:hidden; transition:.25s; position:relative; }
+  .listing-card { background:var(--surface); border:1px solid var(--border); border-radius:16px; overflow:hidden; transition:.25s; cursor:pointer; position:relative; }
   .listing-card:hover { border-color:var(--accent); transform:translateY(-3px); box-shadow:0 12px 40px rgba(124,111,247,.15); }
-  .listing-img { width:100%; height:160px; background:var(--surface2); display:flex; align-items:center; justify-content:center; font-size:48px; object-fit:cover; }
+  .listing-img { width:100%; height:180px; background:var(--surface2); display:flex; align-items:center; justify-content:center; font-size:48px; object-fit:cover; }
   .listing-body { padding:18px; }
   .listing-tag { display:inline-block; padding:3px 10px; border-radius:20px; font-size:11px; background:rgba(124,111,247,.15); color:var(--accent); margin-bottom:8px; }
-  .listing-name { font-family:'Unbounded',sans-serif; font-size:15px; font-weight:700; margin-bottom:6px; }
-  .listing-desc { font-size:13px; color:var(--muted); margin-bottom:14px; line-height:1.5; }
+  .listing-name { font-family:'Unbounded',sans-serif; font-size:16px; font-weight:700; margin-bottom:6px; }
+  .listing-desc { font-size:13px; color:var(--muted); margin-bottom:14px; line-height:1.5; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
   .listing-footer { display:flex; align-items:center; justify-content:space-between; }
-  .listing-price { font-family:'Unbounded',sans-serif; font-size:17px; font-weight:700; color:var(--green); }
-  .btn-buy { padding:8px 18px; background:var(--accent); border:none; border-radius:8px; color:#fff; font-family:'Geologica',sans-serif; font-size:13px; font-weight:500; cursor:pointer; transition:.2s; }
+  .listing-price { font-family:'Unbounded',sans-serif; font-size:18px; font-weight:700; color:var(--green); }
+  .btn-buy { padding:8px 18px; background:var(--accent); border:none; border-radius:8px; color:#fff; font-size:13px; font-weight:500; cursor:pointer; transition:.2s; }
   .btn-buy:hover { background:#6a5de8; }
   .orders-list { display:flex; flex-direction:column; gap:14px; }
   .order-card { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:20px 24px; display:flex; align-items:center; gap:16px; flex-wrap:wrap; }
@@ -154,6 +156,18 @@
   .games-list button:hover { border-color:var(--accent); background:rgba(124,111,247,.1); }
   .promo-section { margin-top:24px; }
   .hidden { display:none !important; }
+  body.device-mobile .header { padding:12px 16px; }
+  body.device-mobile .header-user { gap:6px; }
+  body.device-mobile .user-badge { display:none; }
+  body.device-mobile .btn-logout { padding:6px 10px; font-size:10px; }
+  body.device-mobile .nav-tabs { position:fixed; bottom:0; left:0; right:0; padding:0; border-bottom:none; border-top:1px solid var(--border); background:var(--surface); display:flex; justify-content:space-around; z-index:200; }
+  body.device-mobile .nav-tab { padding:12px 8px; font-size:12px; flex:1; text-align:center; border-bottom:none; }
+  body.device-mobile .page { padding:20px 16px 80px; }
+  body.device-mobile .listings-grid { grid-template-columns: 1fr; gap:16px; }
+  body.device-mobile .modal { width:100%; max-width:100%; border-radius:0; min-height:100vh; margin:0; }
+  body.device-mobile .modal-close { top:10px; right:10px; width:36px; height:36px; }
+  body.device-mobile .listing-img { height:200px; }
+  body.device-mobile .filters { flex-direction:column; }
 </style>
 </head>
 <body>
@@ -209,7 +223,6 @@
     <button class="nav-tab" id="adminTab" style="display:none" onclick="showPage('admin')">⚙️ Управление</button>
   </nav>
 
-  <!-- Страница товаров -->
   <div class="page active" id="pageShop">
     <div class="page-title"><span>Актуальные</span> объявления</div>
     <div class="filters">
@@ -225,7 +238,6 @@
     <div class="listings-grid" id="listingsGrid"></div>
   </div>
 
-  <!-- Заказы (админ) -->
   <div class="page" id="pageOrders">
     <div class="orders-header">
       <div class="page-title" style="margin:0"><span>Заказы</span></div>
@@ -237,13 +249,11 @@
     <div id="ordersList" class="orders-list"><div class="loading">Загрузка...</div></div>
   </div>
 
-  <!-- Мои заказы (пользователь) -->
   <div class="page" id="pageMyorders">
     <div class="page-title"><span>Мои</span> заказы</div>
     <div id="myOrdersList" class="orders-list"><div class="loading">Загрузка...</div></div>
   </div>
 
-  <!-- Админ-панель -->
   <div class="page" id="pageAdmin">
     <div class="admin-panel">
       <h3>📦 Управление товарами</h3>
@@ -290,7 +300,6 @@
     </div>
   </div>
 
-  <!-- Настройки -->
   <div class="page" id="pageSettings">
     <div class="page-title"><span>Настройки</span></div>
     <div class="auth-card" style="width:400px;margin:0 auto;">
@@ -309,7 +318,19 @@
   </div>
 </div>
 
-<!-- Модалка покупки -->
+<!-- Модалки -->
+<div class="modal-overlay" id="listingModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeListingModal()">✕</button>
+    <div class="listing-img" style="height:250px; background:var(--surface2); display:flex; align-items:center; justify-content:center;" id="modalListingImg"></div>
+    <div class="modal-title" id="modalListingName"></div>
+    <div class="listing-tag" id="modalListingCat"></div>
+    <div id="modalListingDesc" style="margin:12px 0;"></div>
+    <div class="listing-price" id="modalListingPrice"></div>
+    <button class="btn-primary" onclick="openBuyFromModal()">Купить</button>
+  </div>
+</div>
+
 <div class="modal-overlay" id="buyModal">
   <div class="modal">
     <button class="modal-close" onclick="closeModal()">✕</button>
@@ -333,7 +354,6 @@
   </div>
 </div>
 
-<!-- Модалка чата -->
 <div class="modal-overlay" id="chatModal">
   <div class="modal">
     <button class="modal-close" onclick="closeChatModal()">✕</button>
@@ -347,7 +367,6 @@
   </div>
 </div>
 
-<!-- Модалка выбора игры -->
 <div class="modal-overlay" id="gamePickerModal">
   <div class="modal" style="width:320px;">
     <button class="modal-close" onclick="closeGamePicker()">✕</button>
@@ -361,16 +380,26 @@
   </div>
 </div>
 
+<div class="modal-overlay" id="deviceModal">
+  <div class="modal" style="text-align:center;">
+    <h3 style="margin-bottom:20px;">Выберите устройство</h3>
+    <div style="display:flex; gap:20px; justify-content:center;">
+      <button class="btn-primary" style="width:auto; padding:20px 30px;" onclick="setDevice('mobile')">📱 Телефон</button>
+      <button class="btn-primary" style="width:auto; padding:20px 30px;" onclick="setDevice('desktop')">🖥️ ПК</button>
+    </div>
+  </div>
+</div>
+
 <script>
 (function(){
   var _0xa = ['JDJhJDEw', 'JDB6MzNY', 'Fdq7d10TIBLqWAttubIsCdbksLxuOcqV.PfM4KVHyVoTqFQ6'];
-  var _0xb = ['NmEwYjY3OGU2ODc3NTEzYjI3OTMwYThk'];
+  var _0xb = ['NmEwYjgxOGY2NjEwZGQzYWU4NjgzMjZh']; // 6a0b818f6610dd3ae868326a
   var _0xc = ['emVuaW4='];
   window.ZK = (function(p){ return atob(p[0]) + atob(p[1]) + p[2]; })(_0xa);
   window.ZB = atob(_0xb[0]);
   window.ZAPI = 'https://api.jsonbin.io/v3/b/' + window.ZB;
   window.ADMIN_PASS = atob(_0xc[0]);
-  window.IMGBB_KEY = '192fac5fc9c09cc3d8194e80f1d85830'; // замени на ключ от api.imgbb.com
+  window.IMGBB_KEY = '192fac5fc9c09cc3d8194e80f1d85830';
 })();
 
 const JSONBIN_KEY = window.ZK;
@@ -392,6 +421,8 @@ let currentChatOrderId = null;
 let availableThemes = ['dark'];
 let logoClickCount = 0;
 let logoClickTimer = null;
+let currentDevice = 'desktop';
+const deviceKey = 'zm_device_';
 
 async function fetchData() {
   try {
@@ -418,13 +449,8 @@ async function saveRecord() {
   });
 }
 
-function isAdminUser() {
-  return currentUser && admins.some(a => a.nick === currentUser.nick);
-}
-
-function isGeneralAdmin() {
-  return currentUser && currentUser.nick === 'GENERAL_ADMIN';
-}
+function isAdminUser() { return currentUser && admins.some(a => a.nick === currentUser.nick); }
+function isGeneralAdmin() { return currentUser && currentUser.nick === 'GENERAL_ADMIN'; }
 
 function updateAdminVisibility() {
   const promoPanel = document.getElementById('promoPanel');
@@ -465,6 +491,7 @@ function autoLogin() {
       renderListings();
       if (isAdminUser()) renderAdminListings();
       updateAdminVisibility();
+      checkDeviceSelection();
     });
   }
 }
@@ -558,6 +585,7 @@ function login(nick, pass, role, remember) {
     renderListings();
     if (isAdminUser()) renderAdminListings();
     updateAdminVisibility();
+    checkDeviceSelection();
   });
 }
 
@@ -570,6 +598,7 @@ function logout() {
     document.getElementById(id).style.display = 'none';
   });
   document.getElementById('authError').textContent = '';
+  document.body.classList.remove('device-mobile');
   showPage('shop');
 }
 
@@ -592,7 +621,7 @@ function renderListings() {
   if (search) filtered = filtered.filter(l => l.name.toLowerCase().includes(search) || l.desc.toLowerCase().includes(search));
   const grid = document.getElementById('listingsGrid');
   grid.innerHTML = filtered.map(l => `
-    <div class="listing-card">
+    <div class="listing-card" onclick="openListingDetails('${l.id}')">
       <div class="listing-img" style="display:flex;align-items:center;justify-content:center;overflow:hidden;">
         ${l.imageUrl ? `<img src="${l.imageUrl}" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none';this.parentNode.innerHTML='${l.emoji}'">` : l.emoji}
       </div>
@@ -602,11 +631,32 @@ function renderListings() {
         <div class="listing-desc">${l.desc}</div>
         <div class="listing-footer">
           <div class="listing-price">${l.price}</div>
-          <button class="btn-buy" onclick="openBuy('${l.id}')">Купить</button>
+          <button class="btn-buy" onclick="event.stopPropagation(); openBuy('${l.id}')">Купить</button>
         </div>
       </div>
     </div>
   `).join('');
+}
+
+function openListingDetails(id) {
+  const l = listings.find(i => i.id === id);
+  if (!l) return;
+  document.getElementById('modalListingImg').innerHTML = l.imageUrl 
+    ? `<img src="${l.imageUrl}" style="width:100%;height:100%;object-fit:cover;">` 
+    : l.emoji;
+  document.getElementById('modalListingName').textContent = l.name;
+  document.getElementById('modalListingCat').textContent = l.category;
+  document.getElementById('modalListingDesc').textContent = l.desc;
+  document.getElementById('modalListingPrice').textContent = l.price;
+  currentListing = l;
+  document.getElementById('listingModal').classList.add('open');
+}
+
+function closeListingModal() { document.getElementById('listingModal').classList.remove('open'); }
+
+function openBuyFromModal() {
+  closeListingModal();
+  openBuy(currentListing.id);
 }
 
 function openBuy(id) {
@@ -620,9 +670,7 @@ function openBuy(id) {
   document.getElementById('buyModal').classList.add('open');
 }
 
-function closeModal() {
-  document.getElementById('buyModal').classList.remove('open');
-}
+function closeModal() { document.getElementById('buyModal').classList.remove('open'); }
 
 async function submitOrder() {
   const pass = document.getElementById('buyPass').value;
@@ -640,25 +688,6 @@ async function submitOrder() {
     }
   }
 
-  let discount = 0;
-  if (promoInput) {
-    const promo = promoCodes.find(p => p.code === promoInput);
-    if (promo) {
-      if (promo.type === 'discount') {
-        discount = promo.discount;
-        err.textContent = `Применена скидка ${discount}%`;
-      } else if (promo.type === 'theme') {
-        if (!availableThemes.includes('light')) availableThemes.push('light');
-        if (!availableThemes.includes('neon')) availableThemes.push('neon');
-        localStorage.setItem('zm_themes', JSON.stringify(availableThemes));
-        err.textContent = 'Тема разблокирована!';
-      }
-    } else {
-      err.textContent = 'Неверный промокод';
-      return;
-    }
-  }
-
   const btn = document.getElementById('buySubmitBtn');
   btn.textContent = 'Отправка...'; btn.disabled = true;
 
@@ -667,6 +696,31 @@ async function submitOrder() {
     if (!getRes.ok) throw new Error(`Ошибка ${getRes.status}`);
     const getData = await getRes.json();
     orders = getData.record.orders || [];
+    promoCodes = getData.record.promocodes || [];
+    listings = getData.record.listings || [];
+    admins = getData.record.admins || [];
+    invites = getData.record.invites || [];
+
+    let discount = 0;
+    if (promoInput) {
+      const promo = promoCodes.find(p => p.code === promoInput);
+      if (promo) {
+        if (promo.type === 'discount') {
+          discount = promo.discount;
+          err.textContent = `Применена скидка ${discount}%`;
+        } else if (promo.type === 'theme') {
+          if (!availableThemes.includes('light')) availableThemes.push('light');
+          if (!availableThemes.includes('neon')) availableThemes.push('neon');
+          localStorage.setItem('zm_themes', JSON.stringify(availableThemes));
+          err.textContent = 'Тема разблокирована!';
+        }
+      } else {
+        err.textContent = 'Неверный промокод';
+        btn.textContent = 'Оформить заказ'; btn.disabled = false;
+        return;
+      }
+    }
+
     const newOrder = {
       id: Date.now(),
       user: currentUser.nick,
@@ -751,7 +805,6 @@ async function loadOrders() {
     if (!res.ok) throw new Error(`Ошибка ${res.status}`);
     const data = await res.json();
     orders = data.record.orders || [];
-
     const activeOrders = orders.filter(o => o.status !== 'completed');
     const completedOrders = orders.filter(o => o.status === 'completed');
     document.getElementById('ordersCountBadge').textContent = activeOrders.length;
@@ -958,9 +1011,7 @@ function openChatForOrder(orderId) {
   refreshChat();
 }
 
-function closeChatModal() {
-  document.getElementById('chatModal').classList.remove('open');
-}
+function closeChatModal() { document.getElementById('chatModal').classList.remove('open'); }
 
 async function refreshChat() {
   const orderId = currentChatOrderId;
@@ -1043,31 +1094,44 @@ function switchTheme() {
   localStorage.setItem('zm_theme', body.classList.toString());
 }
 
-function openGamePicker() {
-  document.getElementById('gamePickerModal').classList.add('open');
-}
-function closeGamePicker() {
-  document.getElementById('gamePickerModal').classList.remove('open');
-}
-function selectGame(game) {
-  document.getElementById('newCategory').value = game;
-  closeGamePicker();
-}
+function openGamePicker() { document.getElementById('gamePickerModal').classList.add('open'); }
+function closeGamePicker() { document.getElementById('gamePickerModal').classList.remove('open'); }
+function selectGame(game) { document.getElementById('newCategory').value = game; closeGamePicker(); }
 
 function getUsers() { return JSON.parse(localStorage.getItem('zm_users') || '{}'); }
 function saveUsers(u) { localStorage.setItem('zm_users', JSON.stringify(u)); }
 
-document.getElementById('buyModal').addEventListener('click', function(e) {
-  if (e.target === this) closeModal();
-});
-document.getElementById('chatModal').addEventListener('click', function(e) {
-  if (e.target === this) closeChatModal();
-});
-document.getElementById('gamePickerModal').addEventListener('click', function(e) {
-  if (e.target === this) closeGamePicker();
-});
+function setDevice(type) {
+  currentDevice = type;
+  if (type === 'mobile') {
+    document.body.classList.add('device-mobile');
+  } else {
+    document.body.classList.remove('device-mobile');
+  }
+  if (currentUser) {
+    localStorage.setItem(deviceKey + currentUser.nick, type);
+  }
+  document.getElementById('deviceModal').classList.remove('open');
+}
+
+function checkDeviceSelection() {
+  if (!currentUser) return;
+  const saved = localStorage.getItem(deviceKey + currentUser.nick);
+  if (saved) {
+    currentDevice = saved;
+    if (saved === 'mobile') document.body.classList.add('device-mobile');
+    else document.body.classList.remove('device-mobile');
+  } else {
+    document.getElementById('deviceModal').classList.add('open');
+  }
+}
+
+document.getElementById('buyModal').addEventListener('click', function(e) { if (e.target === this) closeModal(); });
+document.getElementById('chatModal').addEventListener('click', function(e) { if (e.target === this) closeChatModal(); });
+document.getElementById('gamePickerModal').addEventListener('click', function(e) { if (e.target === this) closeGamePicker(); });
+document.getElementById('listingModal').addEventListener('click', function(e) { if (e.target === this) closeListingModal(); });
 
 autoLogin();
 </script>
 </body>
-  </html>
+</html>
