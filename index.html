@@ -209,6 +209,7 @@
     <button class="nav-tab" id="adminTab" style="display:none" onclick="showPage('admin')">⚙️ Управление</button>
   </nav>
 
+  <!-- Страница товаров -->
   <div class="page active" id="pageShop">
     <div class="page-title"><span>Актуальные</span> объявления</div>
     <div class="filters">
@@ -224,6 +225,7 @@
     <div class="listings-grid" id="listingsGrid"></div>
   </div>
 
+  <!-- Заказы (админ) -->
   <div class="page" id="pageOrders">
     <div class="orders-header">
       <div class="page-title" style="margin:0"><span>Заказы</span></div>
@@ -235,11 +237,13 @@
     <div id="ordersList" class="orders-list"><div class="loading">Загрузка...</div></div>
   </div>
 
+  <!-- Мои заказы (пользователь) -->
   <div class="page" id="pageMyorders">
     <div class="page-title"><span>Мои</span> заказы</div>
     <div id="myOrdersList" class="orders-list"><div class="loading">Загрузка...</div></div>
   </div>
 
+  <!-- Админ-панель -->
   <div class="page" id="pageAdmin">
     <div class="admin-panel">
       <h3>📦 Управление товарами</h3>
@@ -278,7 +282,7 @@
     <div class="admin-panel" id="invitePanel">
       <h3>🔗 Приглашения для админов</h3>
       <div class="form-row">
-        <input type="text" id="inviteCode" placeholder="Сгенерированный код">
+        <input type="text" id="inviteCode" placeholder="Сгенерированный код" readonly>
         <input type="number" id="inviteUses" placeholder="Макс использований (1-3)" min="1" max="3" value="1">
         <button class="btn-small" onclick="generateInvite()">Создать код</button>
       </div>
@@ -286,6 +290,7 @@
     </div>
   </div>
 
+  <!-- Настройки -->
   <div class="page" id="pageSettings">
     <div class="page-title"><span>Настройки</span></div>
     <div class="auth-card" style="width:400px;margin:0 auto;">
@@ -304,6 +309,7 @@
   </div>
 </div>
 
+<!-- Модалка покупки -->
 <div class="modal-overlay" id="buyModal">
   <div class="modal">
     <button class="modal-close" onclick="closeModal()">✕</button>
@@ -327,6 +333,7 @@
   </div>
 </div>
 
+<!-- Модалка чата -->
 <div class="modal-overlay" id="chatModal">
   <div class="modal">
     <button class="modal-close" onclick="closeChatModal()">✕</button>
@@ -340,6 +347,7 @@
   </div>
 </div>
 
+<!-- Модалка выбора игры -->
 <div class="modal-overlay" id="gamePickerModal">
   <div class="modal" style="width:320px;">
     <button class="modal-close" onclick="closeGamePicker()">✕</button>
@@ -362,7 +370,7 @@
   window.ZB = atob(_0xb[0]);
   window.ZAPI = 'https://api.jsonbin.io/v3/b/' + window.ZB;
   window.ADMIN_PASS = atob(_0xc[0]);
-  window.IMGBB_KEY = 'вставь_свой_imgbb_api_key_сюда'; // инструкция ниже
+  window.IMGBB_KEY = '192fac5fc9c09cc3d8194e80f1d85830'; // замени на ключ от api.imgbb.com
 })();
 
 const JSONBIN_KEY = window.ZK;
@@ -436,7 +444,6 @@ function updateAdminVisibility() {
   }
 }
 
-// Автологин
 function autoLogin() {
   const saved = localStorage.getItem('zm_autologin');
   if (saved) {
@@ -462,7 +469,6 @@ function autoLogin() {
   }
 }
 
-// Логика 10 кликов по логотипу
 document.getElementById('authLogo').addEventListener('click', function() {
   logoClickCount++;
   clearTimeout(logoClickTimer);
@@ -482,7 +488,7 @@ function selectRole(r) {
   if (r === 'admin') {
     document.getElementById('tabReg').style.display = '';
     document.getElementById('refInput').classList.remove('hidden');
-    switchTab('reg'); // только регистрация для админов
+    switchTab('reg');
   }
 }
 
@@ -505,17 +511,14 @@ function doAuth() {
 
   if (activeRole === 'admin') {
     if (activeTab === 'reg') {
-      // Проверка реф. кода
       const invite = invites.find(i => i.code === refCode);
       if (!invite) { err.textContent = 'Неверный реф. код'; return; }
       if (invite.used >= invite.maxUses) { err.textContent = 'Код больше не действителен'; return; }
       invite.used++;
-      // Создаём админа с ограниченными правами
       admins.push({ nick, pass, canCreatePromo: false, canInvite: false });
       saveRecord();
       login(nick, pass, 'admin', remember);
     } else {
-      // Вход админа
       const admin = admins.find(a => a.nick === nick && a.pass === pass);
       if (!admin && nick !== 'GENERAL_ADMIN') { err.textContent = 'Неверный логин или пароль'; return; }
       if (nick === 'GENERAL_ADMIN' && pass !== ADMIN_PASS) { err.textContent = 'Неверный пароль'; return; }
@@ -528,7 +531,6 @@ function doAuth() {
     return;
   }
 
-  // Пользователь
   const users = getUsers();
   if (activeTab === 'reg') {
     if (users[nick]) { err.textContent = 'Ник уже занят'; return; }
@@ -582,10 +584,301 @@ function showPage(p) {
   if (p === 'admin') { renderAdminListings(); renderPromoList(); renderInviteList(); updateAdminVisibility(); }
 }
 
-// Остальные функции: рендеры, заказы, чат, управление товарами/промокодами/приглашениями, смена пароля, загрузка картинки
-// ... (все функции из предыдущей версии плюс новые)
+function renderListings() {
+  const cat = document.getElementById('categoryFilter')?.value || 'all';
+  const search = document.getElementById('searchInput')?.value.toLowerCase() || '';
+  let filtered = listings;
+  if (cat !== 'all') filtered = filtered.filter(l => l.category === cat);
+  if (search) filtered = filtered.filter(l => l.name.toLowerCase().includes(search) || l.desc.toLowerCase().includes(search));
+  const grid = document.getElementById('listingsGrid');
+  grid.innerHTML = filtered.map(l => `
+    <div class="listing-card">
+      <div class="listing-img" style="display:flex;align-items:center;justify-content:center;overflow:hidden;">
+        ${l.imageUrl ? `<img src="${l.imageUrl}" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none';this.parentNode.innerHTML='${l.emoji}'">` : l.emoji}
+      </div>
+      <div class="listing-body">
+        <div class="listing-tag">${l.category}</div>
+        <div class="listing-name">${l.name}</div>
+        <div class="listing-desc">${l.desc}</div>
+        <div class="listing-footer">
+          <div class="listing-price">${l.price}</div>
+          <button class="btn-buy" onclick="openBuy('${l.id}')">Купить</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
 
-// НОВЫЕ: приглашения, смена пароля, загрузка изображения
+function openBuy(id) {
+  currentListing = listings.find(l => l.id === id);
+  document.getElementById('modalItemName').textContent = `${currentListing.emoji} ${currentListing.name}`;
+  document.getElementById('finalPrice').textContent = `Цена: ${currentListing.price}`;
+  document.getElementById('buyPass').value = '';
+  document.getElementById('promoInput').value = '';
+  document.getElementById('buyComment').value = '';
+  document.getElementById('buyError').textContent = '';
+  document.getElementById('buyModal').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('buyModal').classList.remove('open');
+}
+
+async function submitOrder() {
+  const pass = document.getElementById('buyPass').value;
+  const comment = document.getElementById('buyComment').value.trim();
+  const promoInput = document.getElementById('promoInput').value.trim();
+  const err = document.getElementById('buyError');
+  err.textContent = '';
+
+  if (currentUser.role === 'user') {
+    const users = getUsers();
+    if (users[currentUser.nick] !== pass) { err.textContent = 'Неверный пароль'; return; }
+  } else {
+    if (pass !== ADMIN_PASS && !admins.some(a => a.nick === currentUser.nick && a.pass === pass)) {
+      err.textContent = 'Неверный пароль'; return;
+    }
+  }
+
+  let discount = 0;
+  if (promoInput) {
+    const promo = promoCodes.find(p => p.code === promoInput);
+    if (promo) {
+      if (promo.type === 'discount') {
+        discount = promo.discount;
+        err.textContent = `Применена скидка ${discount}%`;
+      } else if (promo.type === 'theme') {
+        if (!availableThemes.includes('light')) availableThemes.push('light');
+        if (!availableThemes.includes('neon')) availableThemes.push('neon');
+        localStorage.setItem('zm_themes', JSON.stringify(availableThemes));
+        err.textContent = 'Тема разблокирована!';
+      }
+    } else {
+      err.textContent = 'Неверный промокод';
+      return;
+    }
+  }
+
+  const btn = document.getElementById('buySubmitBtn');
+  btn.textContent = 'Отправка...'; btn.disabled = true;
+
+  try {
+    const getRes = await fetch(API + '/latest', { headers: { 'X-Access-Key': JSONBIN_KEY } });
+    if (!getRes.ok) throw new Error(`Ошибка ${getRes.status}`);
+    const getData = await getRes.json();
+    orders = getData.record.orders || [];
+    const newOrder = {
+      id: Date.now(),
+      user: currentUser.nick,
+      item: currentListing.name,
+      price: currentListing.price,
+      comment: comment || '—',
+      date: new Date().toLocaleString('ru'),
+      chat: [],
+      status: 'active'
+    };
+    orders.push(newOrder);
+    await fetch(API, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'X-Access-Key': JSONBIN_KEY },
+      body: JSON.stringify({ orders, listings, promoCodes, admins, invites })
+    });
+
+    addMyOrderId(newOrder.id);
+    closeModal();
+    openChatForOrder(newOrder.id);
+  } catch(e) {
+    console.error(e);
+    err.textContent = 'Ошибка: ' + (e.message || 'Сеть недоступна');
+  } finally {
+    btn.textContent = 'Оформить заказ'; btn.disabled = false;
+  }
+}
+
+function getMyOrderIds() {
+  const raw = localStorage.getItem('zm_myorders_' + (currentUser?.nick || ''));
+  return raw ? JSON.parse(raw) : [];
+}
+function addMyOrderId(orderId) {
+  const ids = getMyOrderIds();
+  if (!ids.includes(orderId)) {
+    ids.push(orderId);
+    localStorage.setItem('zm_myorders_' + currentUser.nick, JSON.stringify(ids));
+  }
+}
+
+async function loadMyOrders() {
+  const list = document.getElementById('myOrdersList');
+  list.innerHTML = '<div class="loading">Загрузка...</div>';
+  const ids = getMyOrderIds();
+  if (ids.length === 0) {
+    list.innerHTML = '<div class="empty-state"><span class="empty-icon">📭</span>У вас пока нет заказов</div>';
+    return;
+  }
+  try {
+    const res = await fetch(API + '/latest', { headers: { 'X-Access-Key': JSONBIN_KEY } });
+    if (!res.ok) throw new Error(`Ошибка ${res.status}`);
+    const data = await res.json();
+    const allOrders = data.record.orders || [];
+    const myOrders = allOrders.filter(o => ids.includes(o.id)).reverse();
+    if (myOrders.length === 0) {
+      list.innerHTML = '<div class="empty-state"><span class="empty-icon">📭</span>Заказы не найдены</div>';
+      return;
+    }
+    list.innerHTML = myOrders.map(o => `
+      <div class="order-card">
+        <div class="order-num">#${o.id.toString().slice(-4)}</div>
+        <div class="order-info">
+          <div class="order-item">${o.item}</div>
+          <div class="order-meta">🕐 ${o.date}</div>
+          <div class="order-comment">💬 <span>${o.comment}</span></div>
+          <div class="order-meta">📌 <b>${o.status === 'completed' ? 'Завершён' : 'В обработке'}</b></div>
+        </div>
+        <div class="order-price">${o.price}</div>
+        <button class="btn-chat" onclick="openChatForOrder(${o.id})">💬 Чат</button>
+      </div>
+    `).join('');
+  } catch(e) {
+    list.innerHTML = `<div class="empty-state"><span class="empty-icon">❌</span>Ошибка: ${e.message}</div>`;
+  }
+}
+
+async function loadOrders() {
+  const list = document.getElementById('ordersList');
+  list.innerHTML = '<div class="loading">Загрузка заказов...</div>';
+  try {
+    const res = await fetch(API + '/latest', { headers: { 'X-Access-Key': JSONBIN_KEY } });
+    if (!res.ok) throw new Error(`Ошибка ${res.status}`);
+    const data = await res.json();
+    orders = data.record.orders || [];
+
+    const activeOrders = orders.filter(o => o.status !== 'completed');
+    const completedOrders = orders.filter(o => o.status === 'completed');
+    document.getElementById('ordersCountBadge').textContent = activeOrders.length;
+
+    let html = '';
+    if (activeOrders.length === 0) {
+      html += '<div class="empty-state"><span class="empty-icon">📭</span>Нет активных заказов</div>';
+    } else {
+      html += '<h3 style="margin-bottom:12px;">⚡ Активные</h3>';
+      html += activeOrders.slice().reverse().map(o => `
+        <div class="order-card">
+          <div class="order-num">#${o.id.toString().slice(-4)}</div>
+          <div class="order-info">
+            <div class="order-item">${o.item}</div>
+            <div class="order-meta">👤 <b>${o.user}</b> · 🕐 ${o.date}</div>
+            <div class="order-comment">💬 <span>${o.comment}</span></div>
+          </div>
+          <div class="order-price">${o.price}</div>
+          <div class="order-actions">
+            <button class="btn-chat" onclick="openChatForOrder(${o.id})">💬 Чат (${o.chat ? o.chat.length : 0})</button>
+            <button class="btn-complete" onclick="completeOrder(${o.id})">✅ Завершить</button>
+            <button class="btn-delete" onclick="deleteOrder(${o.id})">🗑️ Удалить</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    if (completedOrders.length > 0) {
+      html += '<h3 style="margin:24px 0 12px;">✅ Завершённые</h3>';
+      html += completedOrders.slice().reverse().map(o => `
+        <div class="order-card" style="opacity:0.7;">
+          <div class="order-num">#${o.id.toString().slice(-4)}</div>
+          <div class="order-info">
+            <div class="order-item">${o.item}</div>
+            <div class="order-meta">👤 <b>${o.user}</b> · 🕐 ${o.date}</div>
+            <div class="order-comment">💬 <span>${o.comment}</span></div>
+          </div>
+          <div class="order-price">${o.price}</div>
+          <div class="order-actions">
+            <span style="color:var(--green);font-size:12px;">✔ Завершён</span>
+            <button class="btn-delete" onclick="deleteOrder(${o.id})">🗑️</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    list.innerHTML = html || '<div class="empty-state"><span class="empty-icon">📭</span>Заказов пока нет</div>';
+  } catch(e) {
+    list.innerHTML = `<div class="empty-state"><span class="empty-icon">❌</span>Ошибка: ${e.message}</div>`;
+  }
+}
+
+async function completeOrder(orderId) {
+  const order = orders.find(o => o.id === orderId);
+  if (order) {
+    order.status = 'completed';
+    await saveRecord();
+    loadOrders();
+  }
+}
+
+async function deleteOrder(orderId) {
+  orders = orders.filter(o => o.id !== orderId);
+  await saveRecord();
+  loadOrders();
+}
+
+async function addListing() {
+  const name = document.getElementById('newName').value.trim();
+  const price = document.getElementById('newPrice').value.trim();
+  const emoji = document.getElementById('newEmoji').value.trim();
+  const category = document.getElementById('newCategory').value.trim();
+  const imageUrl = document.getElementById('newImageUrl').value.trim();
+  const desc = document.getElementById('newDesc').value.trim();
+  if (!name || !price || !category) return;
+  const newListing = {
+    id: Date.now().toString(),
+    name, price, emoji: emoji || '📦', category, imageUrl, desc
+  };
+  listings.push(newListing);
+  await saveRecord();
+  renderListings();
+  renderAdminListings();
+}
+
+async function deleteListing(id) {
+  listings = listings.filter(l => l.id !== id);
+  await saveRecord();
+  renderListings();
+  renderAdminListings();
+}
+
+function renderAdminListings() {
+  const container = document.getElementById('adminListings');
+  if (!container) return;
+  container.innerHTML = listings.map(l => `
+    <div class="order-card">
+      <span>${l.emoji} ${l.name} — ${l.price} (${l.category})</span>
+      <button class="btn-delete" onclick="deleteListing('${l.id}')">🗑️</button>
+    </div>
+  `).join('');
+}
+
+async function createPromo() {
+  const code = document.getElementById('promoCode').value.trim();
+  const discount = parseInt(document.getElementById('promoDiscount').value) || 0;
+  const type = document.getElementById('promoType').value;
+  if (!code) return;
+  promoCodes.push({ code, discount: type === 'discount' ? discount : 0, type });
+  await saveRecord();
+  renderPromoList();
+}
+
+async function deletePromo(code) {
+  promoCodes = promoCodes.filter(p => p.code !== code);
+  await saveRecord();
+  renderPromoList();
+}
+
+function renderPromoList() {
+  const container = document.getElementById('promoList');
+  if (!container) return;
+  container.innerHTML = promoCodes.map(p => `
+    <div style="margin-bottom:6px;">${p.code} — ${p.type === 'discount' ? p.discount + '%' : 'Тема'} 
+    <button class="btn-delete" onclick="deletePromo('${p.code}')">🗑️</button></div>
+  `).join('');
+}
 
 function generateInvite() {
   if (!isAdminUser() || !(isGeneralAdmin() || admins.find(a=>a.nick===currentUser.nick)?.canInvite)) return;
@@ -632,7 +925,7 @@ function changePassword() {
 }
 
 function uploadImage(input) {
-  if (!IMGBB_KEY || IMGBB_KEY.startsWith('192fac5fc9c09cc3d8194e80f1d85830')) {
+  if (!IMGBB_KEY || IMGBB_KEY.startsWith('вставь')) {
     alert('Необходимо указать API ключ imgbb в коде (инструкция внутри)');
     return;
   }
@@ -655,8 +948,126 @@ function uploadImage(input) {
   .catch(() => alert('Ошибка сети'));
 }
 
-// Восстановим недостающие функции из предыдущей версии (loadOrders, submitOrder и т.д.) без изменений
-// ... (они точно такие же, как в прошлом ответе, с учётом новых полей)
+function openChatForOrder(orderId) {
+  currentChatOrderId = orderId;
+  document.getElementById('chatOrderId').textContent = '#' + orderId.toString().slice(-4);
+  document.getElementById('chatMessages').innerHTML = 'Загрузка...';
+  document.getElementById('chatInput').value = '';
+  document.getElementById('chatError').textContent = '';
+  document.getElementById('chatModal').classList.add('open');
+  refreshChat();
+}
+
+function closeChatModal() {
+  document.getElementById('chatModal').classList.remove('open');
+}
+
+async function refreshChat() {
+  const orderId = currentChatOrderId;
+  const chatDiv = document.getElementById('chatMessages');
+  try {
+    const res = await fetch(API + '/latest', { headers: { 'X-Access-Key': JSONBIN_KEY } });
+    if (!res.ok) throw new Error(`Ошибка ${res.status}`);
+    const data = await res.json();
+    const allOrders = data.record.orders || [];
+    const order = allOrders.find(o => o.id === orderId);
+    if (!order) {
+      chatDiv.innerHTML = 'Заказ не найден';
+      return;
+    }
+    const messages = order.chat || [];
+    if (messages.length === 0) {
+      chatDiv.innerHTML = '<div style="color:var(--muted)">Пока нет сообщений. Напишите первым.</div>';
+      return;
+    }
+    chatDiv.innerHTML = messages.map(m => `
+      <div class="chat-msg">
+        <div class="author">${m.author} (${m.role})</div>
+        <div class="text">${m.text}</div>
+        <div style="font-size:10px;color:var(--muted)">${m.time}</div>
+      </div>
+    `).join('');
+    chatDiv.scrollTop = chatDiv.scrollHeight;
+  } catch(e) {
+    chatDiv.innerHTML = `Ошибка загрузки чата: ${e.message}`;
+  }
+}
+
+async function sendChatMessage() {
+  const text = document.getElementById('chatInput').value.trim();
+  const err = document.getElementById('chatError');
+  err.textContent = '';
+  if (!text) return;
+  if (!currentUser) return;
+
+  try {
+    const res = await fetch(API + '/latest', { headers: { 'X-Access-Key': JSONBIN_KEY } });
+    if (!res.ok) throw new Error(`Ошибка ${res.status}`);
+    const data = await res.json();
+    let allOrders = data.record.orders || [];
+    const idx = allOrders.findIndex(o => o.id === currentChatOrderId);
+    if (idx === -1) {
+      err.textContent = 'Заказ не найден';
+      return;
+    }
+    if (!allOrders[idx].chat) allOrders[idx].chat = [];
+    allOrders[idx].chat.push({
+      author: currentUser.nick,
+      role: currentUser.role,
+      text: text,
+      time: new Date().toLocaleString('ru')
+    });
+
+    await fetch(API, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'X-Access-Key': JSONBIN_KEY },
+      body: JSON.stringify({ orders: allOrders, listings, promoCodes, admins, invites })
+    });
+    document.getElementById('chatInput').value = '';
+    await refreshChat();
+  } catch(e) {
+    err.textContent = 'Ошибка отправки: ' + e.message;
+  }
+}
+
+function switchTheme() {
+  const body = document.body;
+  if (body.classList.contains('theme-light')) {
+    body.classList.remove('theme-light');
+    body.classList.add('theme-neon');
+  } else if (body.classList.contains('theme-neon')) {
+    body.classList.remove('theme-neon');
+  } else {
+    body.classList.add('theme-light');
+  }
+  localStorage.setItem('zm_theme', body.classList.toString());
+}
+
+function openGamePicker() {
+  document.getElementById('gamePickerModal').classList.add('open');
+}
+function closeGamePicker() {
+  document.getElementById('gamePickerModal').classList.remove('open');
+}
+function selectGame(game) {
+  document.getElementById('newCategory').value = game;
+  closeGamePicker();
+}
+
+function getUsers() { return JSON.parse(localStorage.getItem('zm_users') || '{}'); }
+function saveUsers(u) { localStorage.setItem('zm_users', JSON.stringify(u)); }
+
+document.getElementById('buyModal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+document.getElementById('chatModal').addEventListener('click', function(e) {
+  if (e.target === this) closeChatModal();
+});
+document.getElementById('gamePickerModal').addEventListener('click', function(e) {
+  if (e.target === this) closeGamePicker();
+});
+
+autoLogin();
 </script>
 </body>
-        </html>
+  </html>
