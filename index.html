@@ -298,6 +298,12 @@
       </div>
       <div id="inviteList" style="margin-top:16px;"></div>
     </div>
+
+    <!-- НОВЫЙ БЛОК: список админов для GENERAL_ADMIN -->
+    <div class="admin-panel" id="adminListPanel">
+      <h3>👥 Администраторы</h3>
+      <div id="adminListContent" style="margin-top:12px;"></div>
+    </div>
   </div>
 
   <div class="page" id="pageSettings">
@@ -443,18 +449,22 @@ function isGeneralAdmin() { return currentUser && currentUser.nick === 'GENERAL_
 function updateAdminVisibility() {
   const promoPanel = document.getElementById('promoPanel');
   const invitePanel = document.getElementById('invitePanel');
+  const adminListPanel = document.getElementById('adminListPanel');
   if (isGeneralAdmin()) {
     promoPanel.classList.remove('hidden');
     invitePanel.classList.remove('hidden');
+    adminListPanel.classList.remove('hidden');
   } else if (isAdminUser()) {
     const adminEntry = admins.find(a => a.nick === currentUser.nick);
     if (adminEntry) {
       promoPanel.classList.toggle('hidden', !adminEntry.canCreatePromo);
       invitePanel.classList.toggle('hidden', !adminEntry.canInvite);
     }
+    adminListPanel.classList.add('hidden');
   } else {
     promoPanel.classList.add('hidden');
     invitePanel.classList.add('hidden');
+    adminListPanel.classList.add('hidden');
   }
 }
 
@@ -524,7 +534,6 @@ async function doAuth() {
 
   if (!nick || !pass) { err.textContent = 'Заполни все поля'; return; }
 
-  // Для админа всегда подгружаем актуальные данные перед проверкой
   if (activeRole === 'admin') {
     await fetchData();
     if (activeTab === 'reg') {
@@ -600,7 +609,7 @@ function showPage(p) {
   document.querySelector(`.nav-tab[onclick="showPage('${p}')"]`).classList.add('active');
   if (p === 'orders') loadOrders();
   if (p === 'myorders') loadMyOrders();
-  if (p === 'admin') { renderAdminListings(); renderPromoList(); renderInviteList(); updateAdminVisibility(); }
+  if (p === 'admin') { renderAdminListings(); renderPromoList(); renderInviteList(); renderAdminList(); updateAdminVisibility(); }
 }
 
 function renderListings() {
@@ -925,7 +934,6 @@ function generateInvite() {
   if (!isAdminUser() || !(isGeneralAdmin() || admins.find(a=>a.nick===currentUser.nick)?.canInvite)) return;
   const code = Math.random().toString(36).substring(2,8).toUpperCase();
   const uses = parseInt(document.getElementById('inviteUses').value);
-  // Если поле пустое или не число, по умолчанию 1
   const maxUses = (uses || uses === 0) ? uses : 1;
   invites.push({ code, maxUses, used: 0, createdBy: currentUser.nick });
   saveRecord();
@@ -946,6 +954,30 @@ function deleteInvite(code) {
   invites = invites.filter(i => i.code !== code);
   saveRecord();
   renderInviteList();
+}
+
+// Функция для отображения и удаления администраторов
+function renderAdminList() {
+  const container = document.getElementById('adminListContent');
+  if (!container) return;
+  const generalAdmin = admins.find(a => a.nick === 'GENERAL_ADMIN');
+  const otherAdmins = admins.filter(a => a.nick !== 'GENERAL_ADMIN');
+  let html = '<div style="margin-bottom:8px; font-weight:bold;">GENERAL_ADMIN (неудаляемый)</div>';
+  otherAdmins.forEach(a => {
+    html += `<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+      <span>${a.nick}</span>
+      <button class="btn-delete" onclick="deleteAdmin('${a.nick}')">🗑️</button>
+    </div>`;
+  });
+  container.innerHTML = html || 'Нет других администраторов';
+}
+
+async function deleteAdmin(nick) {
+  if (nick === 'GENERAL_ADMIN') return;
+  if (!isGeneralAdmin()) return;
+  admins = admins.filter(a => a.nick !== nick);
+  await saveRecord();
+  renderAdminList();
 }
 
 function changePassword() {
@@ -1119,4 +1151,4 @@ document.getElementById('listingModal').addEventListener('click', function(e) { 
 autoLogin();
 </script>
 </body>
-          </html>
+  </html>
