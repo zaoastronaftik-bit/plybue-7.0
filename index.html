@@ -681,16 +681,36 @@ function logout() {
   showPage('shop');
 }
 
-function showPage(p) {
+async function showPage(p) {
+  // Снимаем активные классы
   document.querySelectorAll('.page').forEach(el => el.classList.remove('active'));
   document.querySelectorAll('.nav-tab').forEach(el => el.classList.remove('active'));
+
+  // При переключении на магазин или админку всегда подгружаем актуальные данные
+  if (p === 'shop' || p === 'admin') {
+    await fetchData();
+  }
+
+  // Определяем ID страницы
   const pageId = p === 'myorders' ? 'pageMyorders' : (p === 'messages' ? 'pageMessages' : 'page' + p.charAt(0).toUpperCase() + p.slice(1));
   document.getElementById(pageId).classList.add('active');
-  document.querySelector(`.nav-tab[onclick="showPage('${p}')"]`).classList.add('active');
+
+  // Подсвечиваем вкладку
+  const tab = document.querySelector(`.nav-tab[onclick="showPage('${p}')"]`);
+  if (tab) tab.classList.add('active');
+
+  // Дополнительные действия
   if (p === 'orders') loadOrders();
   if (p === 'myorders') loadMyOrders();
   if (p === 'messages') loadMessagesPage();
-  if (p === 'admin') { renderAdminListings(); renderPromoList(); renderInviteList(); renderAdminList(); renderGamesList(); updateAdminVisibility(); }
+  if (p === 'admin') {
+    renderAdminListings();
+    renderPromoList();
+    renderInviteList();
+    renderAdminList();
+    renderGamesList();
+    updateAdminVisibility();
+  }
 }
 
 function renderListings() {
