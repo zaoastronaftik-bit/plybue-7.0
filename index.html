@@ -126,6 +126,37 @@
   .filters { display:flex; gap:12px; margin-bottom:24px; flex-wrap:wrap; align-items:center; }
   .filters button { padding:10px 14px; background:var(--surface2); border:1px solid var(--border); border-radius:8px; color:var(--text); font-size:13px; cursor:pointer; transition:.2s; }
   .filters button:hover { border-color:var(--accent); }
+  /* Кастомный поиск */
+  .search-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0 10px;
+    transition: border-color .2s, box-shadow .2s;
+  }
+  .search-container:focus-within {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px rgba(124,111,247,0.2);
+  }
+  .search-container input {
+    background: transparent;
+    border: none;
+    padding: 10px 8px;
+    color: var(--text);
+    font-size: 13px;
+    outline: none;
+    flex: 1;
+    min-width: 160px;
+  }
+  .search-container input::placeholder { color: var(--muted); }
+  .search-container .search-icon {
+    color: var(--muted);
+    font-size: 16px;
+    margin-right: 4px;
+  }
   .listings-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(280px,1fr)); gap:20px; }
   .listing-card { background:var(--surface); border:1px solid var(--border); border-radius:16px; overflow:hidden; transition:.25s; cursor:pointer; position:relative; }
   .listing-card:hover { border-color:var(--accent); transform:translateY(-3px); box-shadow:0 12px 40px rgba(124,111,247,.15); }
@@ -279,7 +310,10 @@
     <div class="page-title"><span>Актуальные</span> объявления</div>
     <div class="filters">
       <button id="categoryFilterBtn" onclick="openCategoryPicker()">Все категории</button>
-      <input type="text" id="searchInput" placeholder="Поиск..." oninput="renderListings()">
+      <div class="search-container">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="searchInput" placeholder="Поиск..." oninput="renderListings()">
+      </div>
     </div>
     <div class="listings-grid" id="listingsGrid"></div>
   </div>
@@ -487,7 +521,7 @@ const IMGBB_KEY = window.IMGBB_KEY;
 let currentUser = null;
 let currentListing = null;
 let listings = [], orders = [], admins = [], invites = [], games = [];
-let userBalances = {}; // { ник: баллы }
+let userBalances = {};
 let activeRole = 'user', activeTab = 'login', currentChatOrderId = null;
 let logoClickCount = 0, logoClickTimer = null;
 let currentDevice = 'desktop';
@@ -653,7 +687,6 @@ async function doAuth() {
     if (users[nick]) { err.textContent = 'Ник уже занят'; return; }
     users[nick] = pass;
     saveUsers(users);
-    // новые пользователи получают 0 баллов автоматически (и так в объекте нет ключа - считается 0)
     login(nick, pass, 'user', remember);
   } else {
     if (!users[nick]) { err.textContent = 'Пользователь не найден'; return; }
@@ -695,21 +728,14 @@ function logout() {
   showPage('shop');
 }
 
-async function showPage(p) {
+// УБИРАЕМ АСИНХРОННОСТЬ, сайт летает как раньше
+function showPage(p) {
   document.querySelectorAll('.page').forEach(el => el.classList.remove('active'));
   document.querySelectorAll('.nav-tab').forEach(el => el.classList.remove('active'));
-
-  if (p === 'shop' || p === 'admin') {
-    await fetchData();
-    updatePointsDisplay();
-  }
-
   const pageId = p === 'myorders' ? 'pageMyorders' : (p === 'messages' ? 'pageMessages' : 'page' + p.charAt(0).toUpperCase() + p.slice(1));
   document.getElementById(pageId).classList.add('active');
-
   const tab = document.querySelector(`.nav-tab[onclick="showPage('${p}')"]`);
   if (tab) tab.classList.add('active');
-
   if (p === 'orders') loadOrders();
   if (p === 'myorders') loadMyOrders();
   if (p === 'messages') loadMessagesPage();
@@ -804,10 +830,9 @@ async function submitOrder() {
     let discount = 0;
     if (usePoints) {
       const balance = userBalances[currentUser.nick] || 0;
-      // конвертируем цену в число (убираем нецифровые символы)
       const priceNum = parseInt(currentListing.price.replace(/[^0-9]/g, '')) || 0;
       if (balance > 0 && priceNum > 0) {
-        discount = Math.min(balance, priceNum); // не больше стоимости
+        discount = Math.min(balance, priceNum);
         userBalances[currentUser.nick] = balance - discount;
         err.textContent = `Использовано ${discount} баллов`;
       } else {
@@ -1071,7 +1096,6 @@ async function deleteGame(game) {
   renderGamesList();
 }
 
-// БАЛЛЫ
 function renderPointsList() {
   const container = document.getElementById('pointsList');
   let html = '';
@@ -1090,7 +1114,6 @@ async function addPoints() {
   userBalances[nick] = (userBalances[nick] || 0) + amount;
   await saveRecord();
   renderPointsList();
-  // если это текущий пользователь, обновить отображение
   if (currentUser && currentUser.nick === nick) {
     updatePointsDisplay();
   }
