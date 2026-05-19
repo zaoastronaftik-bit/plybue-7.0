@@ -16,7 +16,6 @@
     --text: #e8e8f0;
     --muted: #6b6b8a;
     --green: #4ade80;
-    --nav-height: 60px;
   }
   body.theme-light {
     --bg: #f0f0f5;
@@ -123,8 +122,9 @@
   .page.active { display:block; animation: fadeUp .3s ease; }
   .page-title { font-family:'Unbounded',sans-serif; font-size:22px; font-weight:700; margin-bottom:28px; letter-spacing:-0.5px; }
   .page-title span { color:var(--accent); }
-  .filters { display:flex; gap:12px; margin-bottom:24px; flex-wrap:wrap; }
-  .filters select, .filters input { padding:10px 14px; background:var(--surface2); border:1px solid var(--border); border-radius:8px; color:var(--text); font-size:13px; }
+  .filters { display:flex; gap:12px; margin-bottom:24px; flex-wrap:wrap; align-items:center; }
+  .filters button { padding:10px 14px; background:var(--surface2); border:1px solid var(--border); border-radius:8px; color:var(--text); font-size:13px; cursor:pointer; transition:.2s; }
+  .filters button:hover { border-color:var(--accent); }
   .listings-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(280px,1fr)); gap:20px; }
   .listing-card { background:var(--surface); border:1px solid var(--border); border-radius:16px; overflow:hidden; transition:.25s; cursor:pointer; position:relative; }
   .listing-card:hover { border-color:var(--accent); transform:translateY(-3px); box-shadow:0 12px 40px rgba(124,111,247,.15); }
@@ -190,6 +190,16 @@
   .games-list button:hover { border-color:var(--accent); background:rgba(124,111,247,.1); }
   .promo-section { margin-top:24px; }
   .hidden { display:none !important; }
+  .messages-container { display:flex; height:calc(100vh - 120px); border:1px solid var(--border); border-radius:16px; overflow:hidden; }
+  .messages-sidebar { width:300px; background:var(--surface); border-right:1px solid var(--border); display:flex; flex-direction:column; }
+  .messages-sidebar-header { padding:16px; font-family:'Unbounded',sans-serif; font-weight:700; border-bottom:1px solid var(--border); }
+  .chat-order-list { flex:1; overflow-y:auto; }
+  .chat-order-item { padding:12px 16px; border-bottom:1px solid var(--border); cursor:pointer; transition:background .2s; }
+  .chat-order-item:hover { background:var(--surface2); }
+  .chat-order-item.active { background:var(--surface2); border-left:3px solid var(--accent); }
+  .messages-chat { flex:1; display:flex; flex-direction:column; background:var(--bg); }
+  .chat-empty { flex:1; display:flex; align-items:center; justify-content:center; color:var(--muted); }
+  .chat-messages { flex:1; overflow-y:auto; padding:16px; display:flex; flex-direction:column; gap:12px; }
   @media (max-width: 768px) {
     .header { padding:12px 16px; }
     .header-user { gap:6px; }
@@ -202,8 +212,11 @@
     .modal { width:100%; max-width:100%; border-radius:0; min-height:100vh; margin:0; }
     .modal-close { top:10px; right:10px; width:36px; height:36px; }
     .listing-img { height:200px; }
-    .filters { flex-direction:column; }
+    .filters { flex-direction:column; align-items:stretch; }
     .form-row { grid-template-columns: 1fr; }
+    .messages-container { flex-direction:column; }
+    .messages-sidebar { width:100%; height:40%; }
+    .messages-chat { height:60%; }
   }
 </style>
 </head>
@@ -257,19 +270,14 @@
     <button class="nav-tab active" onclick="showPage('shop')">🛒 Объявления</button>
     <button class="nav-tab" id="ordersTab" style="display:none" onclick="showPage('orders')">📋 Заказы</button>
     <button class="nav-tab" id="myOrdersTab" style="display:none" onclick="showPage('myorders')">📦 Мои заказы</button>
+    <button class="nav-tab" id="messagesTab" style="display:none" onclick="showPage('messages')">💬 Сообщения</button>
     <button class="nav-tab" id="adminTab" style="display:none" onclick="showPage('admin')">⚙️ Управление</button>
   </nav>
 
   <div class="page active" id="pageShop">
     <div class="page-title"><span>Актуальные</span> объявления</div>
     <div class="filters">
-      <select id="categoryFilter" onchange="renderListings()">
-        <option value="all">Все категории</option>
-        <option value="Brawl Stars">Brawl Stars</option>
-        <option value="Valorant">Valorant</option>
-        <option value="Car Parking">Car Parking</option>
-        <option value="Другое">Другое</option>
-      </select>
+      <button id="categoryFilterBtn" onclick="openCategoryPicker()">Все категории</button>
       <input type="text" id="searchInput" placeholder="Поиск..." oninput="renderListings()">
     </div>
     <div class="listings-grid" id="listingsGrid"></div>
@@ -291,6 +299,23 @@
     <div id="myOrdersList" class="orders-list"><div class="loading">Загрузка...</div></div>
   </div>
 
+  <div class="page" id="pageMessages">
+    <div class="messages-container">
+      <div class="messages-sidebar">
+        <div class="messages-sidebar-header">Сообщения</div>
+        <div id="chatOrderList" class="chat-order-list"></div>
+      </div>
+      <div class="messages-chat" id="messagesChat">
+        <div class="chat-empty">Выберите чат</div>
+        <div class="chat-messages" id="messagesChatArea" style="display:none;"></div>
+        <div class="chat-input-row" id="messagesChatInput" style="display:none;">
+          <input type="text" id="messagesChatInputField" placeholder="Сообщение...">
+          <button onclick="sendMessagesChatMessage()">Отправить</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="page" id="pageAdmin">
     <div class="admin-panel">
       <h3>📦 Управление товарами</h3>
@@ -304,7 +329,7 @@
         </div>
         <input type="text" id="newImageUrl" placeholder="URL изображения">
         <input type="text" id="newDesc" placeholder="Описание">
-        <input type="datetime-local" id="newExpiry" placeholder="Срок действия (пусто — навсегда)">
+        <input type="datetime-local" id="newExpiry">
         <input type="file" id="imageUpload" accept="image/*" style="display:none" onchange="uploadImage(this)">
         <button class="btn-small" onclick="document.getElementById('imageUpload').click()">🖼️ Загрузить фото</button>
       </div>
@@ -340,6 +365,15 @@
     <div class="admin-panel" id="adminListPanel">
       <h3>👥 Администраторы</h3>
       <div id="adminListContent" style="margin-top:12px;"></div>
+    </div>
+
+    <div class="admin-panel" id="gamesPanel">
+      <h3>🎮 Игры</h3>
+      <div class="form-row">
+        <input type="text" id="newGameName" placeholder="Название игры">
+        <button class="btn-small" onclick="addGame()">➕ Добавить</button>
+      </div>
+      <div id="gamesList" style="margin-top:16px;"></div>
     </div>
   </div>
 
@@ -413,12 +447,15 @@
   <div class="modal" style="width:320px;">
     <button class="modal-close" onclick="closeGamePicker()">✕</button>
     <div class="modal-title">Выберите игру</div>
-    <div class="games-list">
-      <button onclick="selectGame('Brawl Stars')">Brawl Stars</button>
-      <button onclick="selectGame('Valorant')">Valorant</button>
-      <button onclick="selectGame('Car Parking')">Car Parking</button>
-      <button onclick="selectGame('Другое')">Другое</button>
-    </div>
+    <div class="games-list" id="gamePickerList"></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="categoryPickerModal">
+  <div class="modal" style="width:320px;">
+    <button class="modal-close" onclick="closeCategoryPicker()">✕</button>
+    <div class="modal-title">Выберите категорию</div>
+    <div class="games-list" id="categoryPickerList"></div>
   </div>
 </div>
 
@@ -435,7 +472,7 @@
 <script>
 (function(){
   var _0xa = ['JDJhJDEw', 'JDB6MzNY', 'Fdq7d10TIBLqWAttubIsCdbksLxuOcqV.PfM4KVHyVoTqFQ6'];
-  var _0xb = ['NmEwYjgxOGY2NjEwZGQzYWU4NjgzMjZh'];
+  var _0xb = ['NmEwYzRlNmE2ODc3NTEzYjI3OThiNjQx'];
   var _0xc = ['emVuaW4='];
   window.ZK = (function(p){ return atob(p[0]) + atob(p[1]) + p[2]; })(_0xa);
   window.ZB = atob(_0xb[0]);
@@ -451,11 +488,12 @@ const IMGBB_KEY = window.IMGBB_KEY;
 
 let currentUser = null;
 let currentListing = null;
-let listings = [], promoCodes = [], orders = [], admins = [], invites = [];
+let listings = [], promoCodes = [], orders = [], admins = [], invites = [], games = [];
 let activeRole = 'user', activeTab = 'login', currentChatOrderId = null;
 let availableThemes = ['dark'];
 let logoClickCount = 0, logoClickTimer = null;
 let currentDevice = 'desktop';
+let selectedCategory = 'all';
 
 async function fetchData() {
   try {
@@ -467,8 +505,10 @@ async function fetchData() {
     promoCodes = rec.promocodes || [];
     admins = rec.admins || [];
     invites = rec.invites || [];
+    games = rec.games || ['Brawl Stars','Valorant','Car Parking','Другое'];
     if (!Array.isArray(admins)) admins = [];
     if (!Array.isArray(invites)) invites = [];
+    if (!Array.isArray(games)) games = ['Brawl Stars','Valorant','Car Parking','Другое'];
   } catch(e) { console.error('Fetch error', e); }
 }
 
@@ -476,7 +516,7 @@ async function saveRecord() {
   await fetch(API, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json', 'X-Access-Key': JSONBIN_KEY },
-    body: JSON.stringify({ orders, listings, promoCodes, admins, invites })
+    body: JSON.stringify({ orders, listings, promoCodes, admins, invites, games })
   });
 }
 
@@ -487,21 +527,23 @@ function updateAdminVisibility() {
   const promoPanel = document.getElementById('promoPanel');
   const invitePanel = document.getElementById('invitePanel');
   const adminListPanel = document.getElementById('adminListPanel');
+  const gamesPanel = document.getElementById('gamesPanel');
   if (isGeneralAdmin()) {
     promoPanel.classList.remove('hidden');
     invitePanel.classList.remove('hidden');
     adminListPanel.classList.remove('hidden');
+    gamesPanel.classList.remove('hidden');
   } else if (isAdminUser()) {
-    const adminEntry = admins.find(a => a.nick === currentUser.nick);
-    if (adminEntry) {
-      promoPanel.classList.toggle('hidden', !adminEntry.canCreatePromo);
-      invitePanel.classList.toggle('hidden', !adminEntry.canInvite);
-    }
+    const entry = admins.find(a => a.nick === currentUser.nick);
+    promoPanel.classList.toggle('hidden', !entry?.canCreatePromo);
+    invitePanel.classList.toggle('hidden', !entry?.canInvite);
     adminListPanel.classList.add('hidden');
+    gamesPanel.classList.add('hidden');
   } else {
     promoPanel.classList.add('hidden');
     invitePanel.classList.add('hidden');
     adminListPanel.classList.add('hidden');
+    gamesPanel.classList.add('hidden');
   }
 }
 
@@ -521,12 +563,12 @@ function autoLogin() {
     }
     if (role === 'user') {
       document.getElementById('myOrdersTab').style.display = 'inline-block';
+      document.getElementById('messagesTab').style.display = 'inline-block';
     }
     fetchData().then(() => {
       renderListings();
       if (isAdminUser()) renderAdminListings();
       updateAdminVisibility();
-      checkDeviceSelection();
     });
   }
 }
@@ -617,6 +659,7 @@ function login(nick, pass, role, remember) {
   document.getElementById('ordersTab').style.display = (role === 'admin' || isAdminUser()) ? 'inline-block' : 'none';
   document.getElementById('adminTab').style.display = (role === 'admin' || isAdminUser()) ? 'inline-block' : 'none';
   document.getElementById('myOrdersTab').style.display = role === 'user' ? 'inline-block' : 'none';
+  document.getElementById('messagesTab').style.display = role === 'user' ? 'inline-block' : 'none';
   fetchData().then(() => {
     renderListings();
     if (isAdminUser()) renderAdminListings();
@@ -630,7 +673,7 @@ function logout() {
   localStorage.removeItem('zm_autologin');
   document.getElementById('authScreen').style.display = 'flex';
   document.getElementById('app').style.display = 'none';
-  ['adminBadge','ordersTab','adminTab','myOrdersTab'].forEach(id => {
+  ['adminBadge','ordersTab','adminTab','myOrdersTab','messagesTab'].forEach(id => {
     document.getElementById(id).style.display = 'none';
   });
   document.getElementById('authError').textContent = '';
@@ -641,27 +684,25 @@ function logout() {
 function showPage(p) {
   document.querySelectorAll('.page').forEach(el => el.classList.remove('active'));
   document.querySelectorAll('.nav-tab').forEach(el => el.classList.remove('active'));
-  const pageId = p === 'myorders' ? 'pageMyorders' : 'page' + p.charAt(0).toUpperCase() + p.slice(1);
+  const pageId = p === 'myorders' ? 'pageMyorders' : (p === 'messages' ? 'pageMessages' : 'page' + p.charAt(0).toUpperCase() + p.slice(1));
   document.getElementById(pageId).classList.add('active');
   document.querySelector(`.nav-tab[onclick="showPage('${p}')"]`).classList.add('active');
   if (p === 'orders') loadOrders();
   if (p === 'myorders') loadMyOrders();
-  if (p === 'admin') { renderAdminListings(); renderPromoList(); renderInviteList(); renderAdminList(); updateAdminVisibility(); }
+  if (p === 'messages') loadMessagesPage();
+  if (p === 'admin') { renderAdminListings(); renderPromoList(); renderInviteList(); renderAdminList(); renderGamesList(); updateAdminVisibility(); }
 }
 
 function renderListings() {
   const now = Date.now();
-  const cat = document.getElementById('categoryFilter')?.value || 'all';
   const search = document.getElementById('searchInput')?.value.toLowerCase() || '';
   let filtered = listings.filter(l => !l.expiry || l.expiry > now);
-  if (cat !== 'all') filtered = filtered.filter(l => l.category === cat);
+  if (selectedCategory !== 'all') filtered = filtered.filter(l => l.category === selectedCategory);
   if (search) filtered = filtered.filter(l => l.name.toLowerCase().includes(search) || l.desc.toLowerCase().includes(search));
   const grid = document.getElementById('listingsGrid');
   grid.innerHTML = filtered.map(l => `
     <div class="listing-card" onclick="openListingDetails('${l.id}')">
-      <div class="listing-img" style="display:flex;align-items:center;justify-content:center;overflow:hidden;">
-        ${l.imageUrl ? `<img src="${l.imageUrl}" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none';this.parentNode.innerHTML='${l.emoji}'">` : l.emoji}
-      </div>
+      <div class="listing-img">${l.imageUrl ? `<img src="${l.imageUrl}" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none';this.parentNode.innerHTML='${l.emoji}'">` : l.emoji}</div>
       <div class="listing-body">
         <div class="listing-tag">${l.category}${l.expiry ? '<span class="badge-temp">временно</span>' : ''}</div>
         <div class="listing-name">${l.name}</div>
@@ -728,6 +769,7 @@ async function submitOrder() {
     listings = getData.record.listings || [];
     admins = getData.record.admins || [];
     invites = getData.record.invites || [];
+    games = getData.record.games || games;
 
     let discount = 0;
     if (promoInput) {
@@ -763,7 +805,7 @@ async function submitOrder() {
     await fetch(API, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json', 'X-Access-Key': JSONBIN_KEY },
-      body: JSON.stringify({ orders, listings, promoCodes, admins, invites })
+      body: JSON.stringify({ orders, listings, promoCodes, admins, invites, games })
     });
 
     addMyOrderId(newOrder.id);
@@ -1012,6 +1054,23 @@ async function deleteAdmin(nick) {
   renderAdminList();
 }
 
+function renderGamesList() {
+  const container = document.getElementById('gamesList');
+  container.innerHTML = games.map(g => `<div style="display:flex;justify-content:space-between;margin-bottom:6px;">${g} <button class="btn-delete" onclick="deleteGame('${g}')">🗑️</button></div>`).join('');
+}
+async function addGame() {
+  const name = document.getElementById('newGameName').value.trim();
+  if (!name || games.includes(name)) return;
+  games.push(name);
+  await saveRecord();
+  renderGamesList();
+}
+async function deleteGame(game) {
+  games = games.filter(g => g !== game);
+  await saveRecord();
+  renderGamesList();
+}
+
 function changePassword() {
   const old = document.getElementById('oldPass').value;
   const newP = document.getElementById('newPass').value;
@@ -1121,7 +1180,7 @@ async function sendChatMessage() {
     await fetch(API, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json', 'X-Access-Key': JSONBIN_KEY },
-      body: JSON.stringify({ orders: allOrders, listings, promoCodes, admins, invites })
+      body: JSON.stringify({ orders: allOrders, listings, promoCodes, admins, invites, games })
     });
     document.getElementById('chatInput').value = '';
     await refreshChat();
@@ -1129,6 +1188,89 @@ async function sendChatMessage() {
     err.textContent = 'Ошибка отправки: ' + e.message;
   }
 }
+
+function loadMessagesPage() {
+  const list = document.getElementById('chatOrderList');
+  const ids = getMyOrderIds();
+  if (ids.length === 0) {
+    list.innerHTML = '<div style="padding:16px;color:var(--muted)">Нет заказов</div>';
+    return;
+  }
+  list.innerHTML = orders.filter(o => ids.includes(o.id)).map(o => `
+    <div class="chat-order-item" onclick="openMessagesChat(${o.id})" id="chat-item-${o.id}">
+      <div style="font-weight:600;">#${o.id.toString().slice(-4)} ${o.item}</div>
+      <div style="font-size:12px;color:var(--muted);">${o.date}</div>
+    </div>
+  `).join('');
+}
+
+function openMessagesChat(orderId) {
+  currentChatOrderId = orderId;
+  document.querySelectorAll('.chat-order-item').forEach(el => el.classList.remove('active'));
+  document.getElementById('chat-item-' + orderId)?.classList.add('active');
+  document.getElementById('messagesChatArea').style.display = 'flex';
+  document.getElementById('messagesChatInput').style.display = 'flex';
+  document.getElementById('messagesChat').querySelector('.chat-empty').style.display = 'none';
+  refreshMessagesChat();
+}
+
+async function refreshMessagesChat() {
+  const chatDiv = document.getElementById('messagesChatArea');
+  try {
+    const res = await fetch(API + '/latest', { headers: { 'X-Access-Key': JSONBIN_KEY } });
+    const data = await res.json();
+    const allOrders = data.record.orders || [];
+    const order = allOrders.find(o => o.id === currentChatOrderId);
+    if (!order) { chatDiv.innerHTML = '<div style="color:var(--muted)">Заказ не найден</div>'; return; }
+    const messages = order.chat || [];
+    chatDiv.innerHTML = messages.map(m => `
+      <div class="chat-msg">
+        <div class="author">${m.author} (${m.role})</div>
+        <div class="text">${m.text}</div>
+        <div style="font-size:10px;color:var(--muted)">${m.time}</div>
+      </div>
+    `).join('');
+    chatDiv.scrollTop = chatDiv.scrollHeight;
+  } catch(e) { chatDiv.innerHTML = 'Ошибка'; }
+}
+
+async function sendMessagesChatMessage() {
+  const text = document.getElementById('messagesChatInputField').value.trim();
+  if (!text) return;
+  try {
+    const res = await fetch(API + '/latest', { headers: { 'X-Access-Key': JSONBIN_KEY } });
+    const data = await res.json();
+    let allOrders = data.record.orders || [];
+    const idx = allOrders.findIndex(o => o.id === currentChatOrderId);
+    if (idx === -1) return;
+    if (!allOrders[idx].chat) allOrders[idx].chat = [];
+    allOrders[idx].chat.push({ author: currentUser.nick, role: currentUser.role, text, time: new Date().toLocaleString('ru') });
+    await fetch(API, { method:'PUT', headers:{'Content-Type':'application/json', 'X-Access-Key': JSONBIN_KEY}, body: JSON.stringify({ orders: allOrders, listings, promoCodes, admins, invites, games }) });
+    document.getElementById('messagesChatInputField').value = '';
+    refreshMessagesChat();
+  } catch(e) { console.error(e); }
+}
+
+function openCategoryPicker() {
+  const list = document.getElementById('categoryPickerList');
+  list.innerHTML = '<button onclick="selectCategory(\'all\')">Все категории</button>' + games.map(g => `<button onclick="selectCategory('${g}')">${g}</button>`).join('');
+  document.getElementById('categoryPickerModal').classList.add('open');
+}
+function closeCategoryPicker() { document.getElementById('categoryPickerModal').classList.remove('open'); }
+function selectCategory(cat) {
+  selectedCategory = cat;
+  document.getElementById('categoryFilterBtn').textContent = cat === 'all' ? 'Все категории' : cat;
+  closeCategoryPicker();
+  renderListings();
+}
+
+function openGamePicker() {
+  const list = document.getElementById('gamePickerList');
+  list.innerHTML = games.map(g => `<button onclick="selectGame('${g}')">${g}</button>`).join('');
+  document.getElementById('gamePickerModal').classList.add('open');
+}
+function closeGamePicker() { document.getElementById('gamePickerModal').classList.remove('open'); }
+function selectGame(game) { document.getElementById('newCategory').value = game; closeGamePicker(); }
 
 function switchTheme() {
   const themes = ['', 'theme-light', 'theme-neon', 'theme-ocean', 'theme-sunset', 'theme-forest'];
@@ -1139,13 +1281,6 @@ function switchTheme() {
   body.className = themes[nextIdx];
   localStorage.setItem('zm_theme', themes[nextIdx]);
 }
-
-function openGamePicker() { document.getElementById('gamePickerModal').classList.add('open'); }
-function closeGamePicker() { document.getElementById('gamePickerModal').classList.remove('open'); }
-function selectGame(game) { document.getElementById('newCategory').value = game; closeGamePicker(); }
-
-function getUsers() { return JSON.parse(localStorage.getItem('zm_users') || '{}'); }
-function saveUsers(u) { localStorage.setItem('zm_users', JSON.stringify(u)); }
 
 function setDevice(type) {
   currentDevice = type;
@@ -1172,6 +1307,9 @@ function checkDeviceSelection() {
   }
 }
 
+function getUsers() { return JSON.parse(localStorage.getItem('zm_users') || '{}'); }
+function saveUsers(u) { localStorage.setItem('zm_users', JSON.stringify(u)); }
+
 document.getElementById('buyModal').addEventListener('click', function(e) { if (e.target === this) closeModal(); });
 document.getElementById('chatModal').addEventListener('click', function(e) { if (e.target === this) closeChatModal(); });
 document.getElementById('gamePickerModal').addEventListener('click', function(e) { if (e.target === this) closeGamePicker(); });
@@ -1180,4 +1318,4 @@ document.getElementById('listingModal').addEventListener('click', function(e) { 
 autoLogin();
 </script>
 </body>
-  </html>
+</html>
