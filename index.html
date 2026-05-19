@@ -18,59 +18,24 @@
     --green: #4ade80;
   }
   body.theme-light {
-    --bg: #f0f0f5;
-    --surface: #ffffff;
-    --surface2: #e8e8ee;
-    --border: #d0d0dd;
-    --accent: #6a5de8;
-    --accent2: #e04040;
-    --text: #1a1a2e;
-    --muted: #6b6b80;
-    --green: #2e7d32;
+    --bg: #f0f0f5; --surface: #ffffff; --surface2: #e8e8ee; --border: #d0d0dd;
+    --accent: #6a5de8; --accent2: #e04040; --text: #1a1a2e; --muted: #6b6b80; --green: #2e7d32;
   }
   body.theme-neon {
-    --bg: #0a0f0a;
-    --surface: #0f1a0f;
-    --surface2: #142014;
-    --border: #2a4a2a;
-    --accent: #00ff88;
-    --accent2: #ff4466;
-    --text: #e0ffe0;
-    --muted: #609060;
-    --green: #00ff88;
+    --bg: #0a0f0a; --surface: #0f1a0f; --surface2: #142014; --border: #2a4a2a;
+    --accent: #00ff88; --accent2: #ff4466; --text: #e0ffe0; --muted: #609060; --green: #00ff88;
   }
   body.theme-ocean {
-    --bg: #0a101f;
-    --surface: #0f192a;
-    --surface2: #142034;
-    --border: #2a3a5a;
-    --accent: #4da6ff;
-    --accent2: #ff7744;
-    --text: #d0e0ff;
-    --muted: #6b80a0;
-    --green: #4da6ff;
+    --bg: #0a101f; --surface: #0f192a; --surface2: #142034; --border: #2a3a5a;
+    --accent: #4da6ff; --accent2: #ff7744; --text: #d0e0ff; --muted: #6b80a0; --green: #4da6ff;
   }
   body.theme-sunset {
-    --bg: #1f0a0a;
-    --surface: #2a0f0f;
-    --surface2: #341414;
-    --border: #5a2a2a;
-    --accent: #ff8844;
-    --accent2: #ff4466;
-    --text: #ffe0d0;
-    --muted: #a06b6b;
-    --green: #ff8844;
+    --bg: #1f0a0a; --surface: #2a0f0f; --surface2: #341414; --border: #5a2a2a;
+    --accent: #ff8844; --accent2: #ff4466; --text: #ffe0d0; --muted: #a06b6b; --green: #ff8844;
   }
   body.theme-forest {
-    --bg: #0a1f0a;
-    --surface: #0f2a0f;
-    --surface2: #143414;
-    --border: #2a5a2a;
-    --accent: #66bb66;
-    --accent2: #cc4444;
-    --text: #d0ffd0;
-    --muted: #6ba06b;
-    --green: #66bb66;
+    --bg: #0a1f0a; --surface: #0f2a0f; --surface2: #143414; --border: #2a5a2a;
+    --accent: #66bb66; --accent2: #cc4444; --text: #d0ffd0; --muted: #6ba06b; --green: #66bb66;
   }
   * { margin:0; padding:0; box-sizing:border-box; }
   body {
@@ -113,7 +78,6 @@
   .header-user { display:flex; align-items:center; gap:12px; }
   .user-badge { background:var(--surface2); border:1px solid var(--border); border-radius:8px; padding:6px 14px; font-size:13px; color:var(--muted); }
   .user-badge b { color:var(--text); }
-  .points-badge { background:rgba(74,222,128,.15); color:var(--green); border:1px solid var(--green); border-radius:8px; padding:6px 14px; font-size:13px; font-weight:600; }
   .btn-logout { padding:7px 16px; background:transparent; border:1px solid var(--border); border-radius:8px; color:var(--muted); font-size:12px; cursor:pointer; transition:.2s; }
   .btn-logout:hover { border-color:var(--accent2); color:var(--accent2); }
   .nav-tabs { display:flex; gap:0; padding:0 32px; border-bottom:1px solid var(--border); background:var(--surface); }
@@ -292,7 +256,6 @@
     <div class="header-logo">ZEN<span>MARKET</span></div>
     <div class="header-user">
       <div class="user-badge">Вы: <b id="dispNick">—</b><span id="adminBadge" class="badge-admin" style="display:none">ADMIN</span></div>
-      <div class="points-badge" id="pointsDisplay" style="display:none;">💰 <span id="pointsValue">0</span> баллов</div>
       <button class="btn-logout" onclick="logout()">Выйти</button>
       <button class="btn-small" onclick="showPage('settings')" title="Настройки">⚙️</button>
       <button class="btn-small" id="themeBtn" onclick="switchTheme()" title="Сменить тему">🎨</button>
@@ -396,16 +359,6 @@
       </div>
       <div id="gamesList" style="margin-top:16px;"></div>
     </div>
-
-    <div class="admin-panel" id="pointsPanel">
-      <h3>💰 Баллы пользователей</h3>
-      <div class="form-row">
-        <input type="text" id="pointsUser" placeholder="Никнейм">
-        <input type="number" id="pointsAmount" placeholder="Сколько баллов">
-        <button class="btn-small" onclick="addPoints()">➕ Начислить</button>
-      </div>
-      <div id="pointsList" style="margin-top:16px;"></div>
-    </div>
   </div>
 
   <div class="page" id="pageSettings">
@@ -452,33 +405,9 @@
       <input type="checkbox" id="confirmOrder" style="width:auto;">
       <label for="confirmOrder" style="margin:0;text-transform:none;">Подтверждаю покупку</label>
     </div>
-    <div class="inp-group" style="display:flex;align-items:center;gap:8px;" id="usePointsRow">
-      <input type="checkbox" id="usePoints" style="width:auto;" onchange="togglePointsModal()">
-      <label for="usePoints" style="margin:0;text-transform:none;">Использовать баллы (1 балл = 1 ₽)</label>
-    </div>
-    <div id="pointsDiscountInfo" style="display:none; margin-bottom:12px; color:var(--green); font-size:13px;"></div>
     <button class="btn-primary" id="buySubmitBtn" onclick="submitOrder()">Оформить</button>
     <div class="error-msg" id="buyError"></div>
     <div class="success-msg" id="buySuccess"></div>
-  </div>
-</div>
-
-<div class="modal-overlay" id="pointsModal">
-  <div class="modal" style="width:350px;">
-    <button class="modal-close" onclick="closePointsModal()">✕</button>
-    <div class="modal-title">Выберите количество баллов</div>
-    <div class="inp-group">
-      <label>Доступно: <span id="pointsAvailable">0</span> баллов</label>
-      <input type="range" id="pointsRange" min="0" max="0" value="0" oninput="updatePointsPreview()">
-      <div style="display:flex; justify-content:space-between; font-size:12px; color:var(--muted);">
-        <span>0</span><span id="pointsMaxLabel">0</span>
-      </div>
-    </div>
-    <div class="inp-group">
-      <input type="number" id="pointsNumber" min="0" max="0" value="0" oninput="syncRangeFromNumber()">
-    </div>
-    <div class="listing-price" id="pointsPreviewPrice">Скидка: 0 ₽</div>
-    <button class="btn-primary" onclick="applyPoints()">Применить</button>
   </div>
 </div>
 
@@ -541,13 +470,10 @@ const IMGBB_KEY = window.IMGBB_KEY;
 let currentUser = null;
 let currentListing = null;
 let listings = [], orders = [], admins = [], invites = [], games = [];
-let userBalances = {};
 let activeRole = 'user', activeTab = 'login', currentChatOrderId = null;
 let logoClickCount = 0, logoClickTimer = null;
 let currentDevice = 'desktop';
 let selectedCategory = 'all';
-let usePointsAmount = 0; // Сколько баллов применяет пользователь
-let availablePoints = 0;
 
 async function fetchData() {
   try {
@@ -559,11 +485,9 @@ async function fetchData() {
     admins = rec.admins || [];
     invites = rec.invites || [];
     games = rec.games || ['Brawl Stars','Valorant','Car Parking','Другое'];
-    userBalances = rec.userBalances || {};
     if (!Array.isArray(admins)) admins = [];
     if (!Array.isArray(invites)) invites = [];
     if (!Array.isArray(games)) games = ['Brawl Stars','Valorant','Car Parking','Другое'];
-    if (typeof userBalances !== 'object') userBalances = {};
   } catch(e) { console.error('Fetch error', e); }
 }
 
@@ -571,7 +495,7 @@ async function saveRecord() {
   await fetch(API, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json', 'X-Access-Key': JSONBIN_KEY },
-    body: JSON.stringify({ orders, listings, admins, invites, games, userBalances })
+    body: JSON.stringify({ orders, listings, admins, invites, games })
   });
 }
 
@@ -582,35 +506,19 @@ function updateAdminVisibility() {
   const invitePanel = document.getElementById('invitePanel');
   const adminListPanel = document.getElementById('adminListPanel');
   const gamesPanel = document.getElementById('gamesPanel');
-  const pointsPanel = document.getElementById('pointsPanel');
   if (isGeneralAdmin()) {
     invitePanel.classList.remove('hidden');
     adminListPanel.classList.remove('hidden');
     gamesPanel.classList.remove('hidden');
-    pointsPanel.classList.remove('hidden');
   } else if (isAdminUser()) {
     const entry = admins.find(a => a.nick === currentUser.nick);
     invitePanel.classList.toggle('hidden', !entry?.canInvite);
     adminListPanel.classList.add('hidden');
     gamesPanel.classList.add('hidden');
-    pointsPanel.classList.add('hidden');
   } else {
     invitePanel.classList.add('hidden');
     adminListPanel.classList.add('hidden');
     gamesPanel.classList.add('hidden');
-    pointsPanel.classList.add('hidden');
-  }
-}
-
-function updatePointsDisplay() {
-  const display = document.getElementById('pointsDisplay');
-  const value = document.getElementById('pointsValue');
-  if (currentUser) {
-    const balance = userBalances[currentUser.nick] || 0;
-    value.textContent = balance;
-    display.style.display = 'inline-block';
-  } else {
-    display.style.display = 'none';
   }
 }
 
@@ -633,7 +541,6 @@ function autoLogin() {
       document.getElementById('messagesTab').style.display = 'inline-block';
     }
     fetchData().then(() => {
-      updatePointsDisplay();
       renderListings();
       if (isAdminUser()) renderAdminListings();
       updateAdminVisibility();
@@ -729,7 +636,6 @@ function login(nick, pass, role, remember) {
   document.getElementById('myOrdersTab').style.display = role === 'user' ? 'inline-block' : 'none';
   document.getElementById('messagesTab').style.display = role === 'user' ? 'inline-block' : 'none';
   fetchData().then(() => {
-    updatePointsDisplay();
     renderListings();
     if (isAdminUser()) renderAdminListings();
     updateAdminVisibility();
@@ -742,7 +648,7 @@ function logout() {
   localStorage.removeItem('zm_autologin');
   document.getElementById('authScreen').style.display = 'flex';
   document.getElementById('app').style.display = 'none';
-  ['adminBadge','ordersTab','adminTab','myOrdersTab','messagesTab','pointsDisplay'].forEach(id => {
+  ['adminBadge','ordersTab','adminTab','myOrdersTab','messagesTab'].forEach(id => {
     document.getElementById(id).style.display = 'none';
   });
   document.getElementById('authError').textContent = '';
@@ -762,12 +668,10 @@ function showPage(p) {
   if (p === 'messages') loadMessagesPage();
   if (p === 'admin') {
     fetchData().then(() => {
-      updatePointsDisplay();
       renderAdminListings();
       renderInviteList();
       renderAdminList();
       renderGamesList();
-      renderPointsList();
       updateAdminVisibility();
     });
   }
@@ -822,80 +726,11 @@ function openBuy(id) {
   document.getElementById('finalPrice').textContent = `Цена: ${currentListing.price}`;
   document.getElementById('buyComment').value = '';
   document.getElementById('confirmOrder').checked = false;
-  document.getElementById('usePoints').checked = false;
-  usePointsAmount = 0;
-  document.getElementById('pointsDiscountInfo').style.display = 'none';
   document.getElementById('buyError').textContent = '';
   document.getElementById('buySuccess').textContent = '';
   document.getElementById('buyModal').classList.add('open');
 }
 function closeModal() { document.getElementById('buyModal').classList.remove('open'); }
-
-function togglePointsModal() {
-  const checked = document.getElementById('usePoints').checked;
-  if (checked) {
-    availablePoints = userBalances[currentUser.nick] || 0;
-    if (availablePoints <= 0) {
-      alert('У вас нет баллов');
-      document.getElementById('usePoints').checked = false;
-      return;
-    }
-    const priceNum = parseInt(currentListing.price.replace(/[^0-9]/g, '')) || 0;
-    const maxUse = Math.min(availablePoints, priceNum);
-    document.getElementById('pointsAvailable').textContent = availablePoints;
-    document.getElementById('pointsRange').max = maxUse;
-    document.getElementById('pointsRange').value = 0;
-    document.getElementById('pointsNumber').max = maxUse;
-    document.getElementById('pointsNumber').value = 0;
-    document.getElementById('pointsMaxLabel').textContent = maxUse;
-    document.getElementById('pointsPreviewPrice').textContent = 'Скидка: 0 ₽';
-    document.getElementById('pointsModal').classList.add('open');
-  } else {
-    usePointsAmount = 0;
-    updateFinalPrice(0);
-  }
-}
-
-function closePointsModal() {
-  document.getElementById('pointsModal').classList.remove('open');
-  if (usePointsAmount === 0) {
-    document.getElementById('usePoints').checked = false;
-  }
-}
-
-function updatePointsPreview() {
-  const val = parseInt(document.getElementById('pointsRange').value);
-  document.getElementById('pointsNumber').value = val;
-  document.getElementById('pointsPreviewPrice').textContent = `Скидка: ${val} ₽`;
-}
-
-function syncRangeFromNumber() {
-  const val = parseInt(document.getElementById('pointsNumber').value) || 0;
-  const max = parseInt(document.getElementById('pointsRange').max);
-  const clamped = Math.min(Math.max(val, 0), max);
-  document.getElementById('pointsNumber').value = clamped;
-  document.getElementById('pointsRange').value = clamped;
-  document.getElementById('pointsPreviewPrice').textContent = `Скидка: ${clamped} ₽`;
-}
-
-function applyPoints() {
-  const val = parseInt(document.getElementById('pointsRange').value);
-  usePointsAmount = val;
-  updateFinalPrice(val);
-  document.getElementById('pointsDiscountInfo').style.display = 'block';
-  document.getElementById('pointsDiscountInfo').textContent = `Применено ${val} баллов (скидка ${val} ₽)`;
-  document.getElementById('pointsModal').classList.remove('open');
-}
-
-function updateFinalPrice(discount) {
-  const priceElement = document.getElementById('finalPrice');
-  if (currentListing) {
-    const original = currentListing.price.replace(/[^0-9]/g, '');
-    const priceNum = parseInt(original) || 0;
-    const final = Math.max(priceNum - discount, 0);
-    priceElement.textContent = discount > 0 ? `Цена: ${currentListing.price} → ${final} ₽` : `Цена: ${currentListing.price}`;
-  }
-}
 
 async function submitOrder() {
   const confirmed = document.getElementById('confirmOrder').checked;
@@ -920,19 +755,6 @@ async function submitOrder() {
     admins = getData.record.admins || [];
     invites = getData.record.invites || [];
     games = getData.record.games || games;
-    userBalances = getData.record.userBalances || {};
-
-    // Применяем баллы
-    if (usePointsAmount > 0) {
-      const balance = userBalances[currentUser.nick] || 0;
-      if (usePointsAmount > balance) {
-        err.textContent = 'Недостаточно баллов';
-        btn.textContent = 'Оформить'; btn.disabled = false;
-        success.textContent = '';
-        return;
-      }
-      userBalances[currentUser.nick] = balance - usePointsAmount;
-    }
 
     const newOrder = {
       id: Date.now(),
@@ -948,10 +770,9 @@ async function submitOrder() {
     await fetch(API, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json', 'X-Access-Key': JSONBIN_KEY },
-      body: JSON.stringify({ orders, listings, admins, invites, games, userBalances })
+      body: JSON.stringify({ orders, listings, admins, invites, games })
     });
 
-    updatePointsDisplay();
     addMyOrderId(newOrder.id);
     success.textContent = '';
     closeModal();
@@ -1192,29 +1013,6 @@ async function deleteGame(game) {
   renderGamesList();
 }
 
-function renderPointsList() {
-  const container = document.getElementById('pointsList');
-  let html = '';
-  Object.entries(userBalances).forEach(([nick, balance]) => {
-    if (balance > 0) {
-      html += `<div>${nick}: ${balance} баллов</div>`;
-    }
-  });
-  container.innerHTML = html || 'Ни у кого пока нет баллов';
-}
-
-async function addPoints() {
-  const nick = document.getElementById('pointsUser').value.trim();
-  const amount = parseInt(document.getElementById('pointsAmount').value) || 0;
-  if (!nick || amount <= 0) return;
-  userBalances[nick] = (userBalances[nick] || 0) + amount;
-  await saveRecord();
-  renderPointsList();
-  if (currentUser && currentUser.nick === nick) {
-    updatePointsDisplay();
-  }
-}
-
 function changePassword() {
   const old = document.getElementById('oldPass').value;
   const newP = document.getElementById('newPass').value;
@@ -1324,7 +1122,7 @@ async function sendChatMessage() {
     await fetch(API, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json', 'X-Access-Key': JSONBIN_KEY },
-      body: JSON.stringify({ orders: allOrders, listings, admins, invites, games, userBalances })
+      body: JSON.stringify({ orders: allOrders, listings, admins, invites, games })
     });
     document.getElementById('chatInput').value = '';
     await refreshChat();
@@ -1389,7 +1187,7 @@ async function sendMessagesChatMessage() {
     if (idx === -1) return;
     if (!allOrders[idx].chat) allOrders[idx].chat = [];
     allOrders[idx].chat.push({ author: currentUser.nick, role: currentUser.role, text, time: new Date().toLocaleString('ru') });
-    await fetch(API, { method:'PUT', headers:{'Content-Type':'application/json', 'X-Access-Key': JSONBIN_KEY}, body: JSON.stringify({ orders: allOrders, listings, admins, invites, games, userBalances }) });
+    await fetch(API, { method:'PUT', headers:{'Content-Type':'application/json', 'X-Access-Key': JSONBIN_KEY}, body: JSON.stringify({ orders: allOrders, listings, admins, invites, games }) });
     document.getElementById('messagesChatInputField').value = '';
     refreshMessagesChat();
   } catch(e) { console.error(e); }
@@ -1458,7 +1256,6 @@ document.getElementById('buyModal').addEventListener('click', function(e) { if (
 document.getElementById('chatModal').addEventListener('click', function(e) { if (e.target === this) closeChatModal(); });
 document.getElementById('gamePickerModal').addEventListener('click', function(e) { if (e.target === this) closeGamePicker(); });
 document.getElementById('listingModal').addEventListener('click', function(e) { if (e.target === this) closeListingModal(); });
-document.getElementById('pointsModal').addEventListener('click', function(e) { if (e.target === this) closePointsModal(); });
 
 autoLogin();
 </script>
