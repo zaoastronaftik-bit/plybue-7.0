@@ -293,7 +293,7 @@
       <h3>🔗 Приглашения для админов</h3>
       <div class="form-row">
         <input type="text" id="inviteCode" placeholder="Сгенерированный код" readonly>
-        <input type="number" id="inviteUses" placeholder="Макс использований" min="1" value="1">
+        <input type="number" id="inviteUses" placeholder="Кол-во использований (0=беск.)" min="0" value="1">
         <button class="btn-small" onclick="generateInvite()">Создать код</button>
       </div>
       <div id="inviteList" style="margin-top:16px;"></div>
@@ -514,7 +514,7 @@ function switchTab(t) {
   document.getElementById('authError').textContent = '';
 }
 
-function doAuth() {
+async function doAuth() {
   const nick = document.getElementById('authNick').value.trim();
   const pass = document.getElementById('authPass').value;
   const remember = document.getElementById('rememberMe').checked;
@@ -524,14 +524,16 @@ function doAuth() {
 
   if (!nick || !pass) { err.textContent = 'Заполни все поля'; return; }
 
+  // Для админа всегда подгружаем актуальные данные перед проверкой
   if (activeRole === 'admin') {
+    await fetchData();
     if (activeTab === 'reg') {
       const invite = invites.find(i => i.code === refCode);
       if (!invite) { err.textContent = 'Неверный реф. код'; return; }
       if (invite.maxUses > 0 && invite.used >= invite.maxUses) { err.textContent = 'Код больше не действителен'; return; }
       invite.used++;
       admins.push({ nick, pass, canCreatePromo: false, canInvite: false });
-      saveRecord();
+      await saveRecord();
       login(nick, pass, 'admin', remember);
     } else {
       const admin = admins.find(a => a.nick === nick && a.pass === pass);
@@ -539,7 +541,7 @@ function doAuth() {
       if (nick === 'GENERAL_ADMIN' && pass !== ADMIN_PASS) { err.textContent = 'Неверный пароль'; return; }
       if (nick === 'GENERAL_ADMIN' && !admins.some(a => a.nick === 'GENERAL_ADMIN')) {
         admins.push({ nick: 'GENERAL_ADMIN', pass: ADMIN_PASS, canCreatePromo: true, canInvite: true });
-        saveRecord();
+        await saveRecord();
       }
       login(nick, pass, 'admin', remember);
     }
@@ -922,8 +924,10 @@ function renderPromoList() {
 function generateInvite() {
   if (!isAdminUser() || !(isGeneralAdmin() || admins.find(a=>a.nick===currentUser.nick)?.canInvite)) return;
   const code = Math.random().toString(36).substring(2,8).toUpperCase();
-  const uses = parseInt(document.getElementById('inviteUses').value) || 1;
-  invites.push({ code, maxUses: uses, used: 0, createdBy: currentUser.nick });
+  const uses = parseInt(document.getElementById('inviteUses').value);
+  // Если поле пустое или не число, по умолчанию 1
+  const maxUses = (uses || uses === 0) ? uses : 1;
+  invites.push({ code, maxUses, used: 0, createdBy: currentUser.nick });
   saveRecord();
   renderInviteList();
   document.getElementById('inviteCode').value = code;
@@ -931,10 +935,11 @@ function generateInvite() {
 
 function renderInviteList() {
   const container = document.getElementById('inviteList');
-  container.innerHTML = invites.map(i => `
-    <div>${i.code} (исп: ${i.used}/${i.maxUses === 0 ? '∞' : i.maxUses}) 
-    <button class="btn-delete" onclick="deleteInvite('${i.code}')">🗑️</button></div>
-  `).join('');
+  container.innerHTML = invites.map(i => {
+    const usesText = i.maxUses === 0 ? '∞' : i.maxUses;
+    return `<div>${i.code} (исп: ${i.used}/${usesText}) 
+    <button class="btn-delete" onclick="deleteInvite('${i.code}')">🗑️</button></div>`;
+  }).join('');
 }
 
 function deleteInvite(code) {
