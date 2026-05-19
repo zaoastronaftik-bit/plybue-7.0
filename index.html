@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>ZENMARKET</title>
 <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;700;900&family=Geologica:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
@@ -39,6 +39,39 @@
     --text: #e0ffe0;
     --muted: #609060;
     --green: #00ff88;
+  }
+  body.theme-ocean {
+    --bg: #0a101f;
+    --surface: #0f192a;
+    --surface2: #142034;
+    --border: #2a3a5a;
+    --accent: #4da6ff;
+    --accent2: #ff7744;
+    --text: #d0e0ff;
+    --muted: #6b80a0;
+    --green: #4da6ff;
+  }
+  body.theme-sunset {
+    --bg: #1f0a0a;
+    --surface: #2a0f0f;
+    --surface2: #341414;
+    --border: #5a2a2a;
+    --accent: #ff8844;
+    --accent2: #ff4466;
+    --text: #ffe0d0;
+    --muted: #a06b6b;
+    --green: #ff8844;
+  }
+  body.theme-forest {
+    --bg: #0a1f0a;
+    --surface: #0f2a0f;
+    --surface2: #143414;
+    --border: #2a5a2a;
+    --accent: #66bb66;
+    --accent2: #cc4444;
+    --text: #d0ffd0;
+    --muted: #6ba06b;
+    --green: #66bb66;
   }
   * { margin:0; padding:0; box-sizing:border-box; }
   body {
@@ -104,6 +137,7 @@
   .listing-price { font-family:'Unbounded',sans-serif; font-size:18px; font-weight:700; color:var(--green); }
   .btn-buy { padding:8px 18px; background:var(--accent); border:none; border-radius:8px; color:#fff; font-size:13px; font-weight:500; cursor:pointer; transition:.2s; }
   .btn-buy:hover { background:#6a5de8; }
+  .badge-temp { display:inline-block; background:rgba(255,165,0,.15); color:#ffa500; font-size:10px; padding:2px 8px; border-radius:10px; margin-left:8px; }
   .orders-list { display:flex; flex-direction:column; gap:14px; }
   .order-card { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:20px 24px; display:flex; align-items:center; gap:16px; flex-wrap:wrap; }
   .order-num { font-family:'Unbounded',sans-serif; font-size:20px; color:var(--accent); font-weight:900; min-width:36px; text-align:center; }
@@ -156,18 +190,21 @@
   .games-list button:hover { border-color:var(--accent); background:rgba(124,111,247,.1); }
   .promo-section { margin-top:24px; }
   .hidden { display:none !important; }
-  body.device-mobile .header { padding:12px 16px; }
-  body.device-mobile .header-user { gap:6px; }
-  body.device-mobile .user-badge { display:none; }
-  body.device-mobile .btn-logout { padding:6px 10px; font-size:10px; }
-  body.device-mobile .nav-tabs { position:fixed; bottom:0; left:0; right:0; padding:0; border-bottom:none; border-top:1px solid var(--border); background:var(--surface); display:flex; justify-content:space-around; z-index:200; }
-  body.device-mobile .nav-tab { padding:12px 8px; font-size:12px; flex:1; text-align:center; border-bottom:none; }
-  body.device-mobile .page { padding:20px 16px 80px; }
-  body.device-mobile .listings-grid { grid-template-columns: 1fr; gap:16px; }
-  body.device-mobile .modal { width:100%; max-width:100%; border-radius:0; min-height:100vh; margin:0; }
-  body.device-mobile .modal-close { top:10px; right:10px; width:36px; height:36px; }
-  body.device-mobile .listing-img { height:200px; }
-  body.device-mobile .filters { flex-direction:column; }
+  @media (max-width: 768px) {
+    .header { padding:12px 16px; }
+    .header-user { gap:6px; }
+    .user-badge { display:none; }
+    .btn-logout { padding:6px 10px; font-size:10px; }
+    .nav-tabs { position:fixed; bottom:0; left:0; right:0; padding:0; border-bottom:none; border-top:1px solid var(--border); background:var(--surface); display:flex; justify-content:space-around; z-index:200; }
+    .nav-tab { padding:12px 8px; font-size:12px; flex:1; text-align:center; border-bottom:none; }
+    .page { padding:20px 16px 80px; }
+    .listings-grid { grid-template-columns: 1fr; gap:16px; }
+    .modal { width:100%; max-width:100%; border-radius:0; min-height:100vh; margin:0; }
+    .modal-close { top:10px; right:10px; width:36px; height:36px; }
+    .listing-img { height:200px; }
+    .filters { flex-direction:column; }
+    .form-row { grid-template-columns: 1fr; }
+  }
 </style>
 </head>
 <body>
@@ -267,6 +304,7 @@
         </div>
         <input type="text" id="newImageUrl" placeholder="URL изображения">
         <input type="text" id="newDesc" placeholder="Описание">
+        <input type="datetime-local" id="newExpiry" placeholder="Срок действия (пусто — навсегда)">
         <input type="file" id="imageUpload" accept="image/*" style="display:none" onchange="uploadImage(this)">
         <button class="btn-small" onclick="document.getElementById('imageUpload').click()">🖼️ Загрузить фото</button>
       </div>
@@ -299,7 +337,6 @@
       <div id="inviteList" style="margin-top:16px;"></div>
     </div>
 
-    <!-- НОВЫЙ БЛОК: список админов для GENERAL_ADMIN -->
     <div class="admin-panel" id="adminListPanel">
       <h3>👥 Администраторы</h3>
       <div id="adminListContent" style="margin-top:12px;"></div>
@@ -342,11 +379,7 @@
     <div class="modal-title">Покупка</div>
     <div class="modal-item-name" id="modalItemName"></div>
     <div class="inp-group">
-      <label>Ваш пароль</label>
-      <input type="password" id="buyPass" placeholder="••••••••">
-    </div>
-    <div class="inp-group">
-      <label>Промокод</label>
+      <label>Промокод (если есть)</label>
       <input type="text" id="promoInput" placeholder="Введите код">
     </div>
     <div class="inp-group">
@@ -354,6 +387,10 @@
       <input type="text" id="buyComment" placeholder="Пожелания...">
     </div>
     <div class="listing-price" id="finalPrice"></div>
+    <div class="inp-group" style="display:flex;align-items:center;gap:8px;">
+      <input type="checkbox" id="confirmOrder" style="width:auto;">
+      <label for="confirmOrder" style="margin:0;text-transform:none;">Подтверждаю покупку</label>
+    </div>
     <button class="btn-primary" id="buySubmitBtn" onclick="submitOrder()">Оформить</button>
     <div class="error-msg" id="buyError"></div>
   </div>
@@ -613,9 +650,10 @@ function showPage(p) {
 }
 
 function renderListings() {
+  const now = Date.now();
   const cat = document.getElementById('categoryFilter')?.value || 'all';
   const search = document.getElementById('searchInput')?.value.toLowerCase() || '';
-  let filtered = listings;
+  let filtered = listings.filter(l => !l.expiry || l.expiry > now);
   if (cat !== 'all') filtered = filtered.filter(l => l.category === cat);
   if (search) filtered = filtered.filter(l => l.name.toLowerCase().includes(search) || l.desc.toLowerCase().includes(search));
   const grid = document.getElementById('listingsGrid');
@@ -625,7 +663,7 @@ function renderListings() {
         ${l.imageUrl ? `<img src="${l.imageUrl}" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none';this.parentNode.innerHTML='${l.emoji}'">` : l.emoji}
       </div>
       <div class="listing-body">
-        <div class="listing-tag">${l.category}</div>
+        <div class="listing-tag">${l.category}${l.expiry ? '<span class="badge-temp">временно</span>' : ''}</div>
         <div class="listing-name">${l.name}</div>
         <div class="listing-desc">${l.desc}</div>
         <div class="listing-footer">
@@ -661,29 +699,22 @@ function openBuy(id) {
   currentListing = listings.find(l => l.id === id);
   document.getElementById('modalItemName').textContent = `${currentListing.emoji} ${currentListing.name}`;
   document.getElementById('finalPrice').textContent = `Цена: ${currentListing.price}`;
-  document.getElementById('buyPass').value = '';
   document.getElementById('promoInput').value = '';
   document.getElementById('buyComment').value = '';
+  document.getElementById('confirmOrder').checked = false;
   document.getElementById('buyError').textContent = '';
   document.getElementById('buyModal').classList.add('open');
 }
 function closeModal() { document.getElementById('buyModal').classList.remove('open'); }
 
 async function submitOrder() {
-  const pass = document.getElementById('buyPass').value;
+  const confirmed = document.getElementById('confirmOrder').checked;
   const comment = document.getElementById('buyComment').value.trim();
   const promoInput = document.getElementById('promoInput').value.trim();
   const err = document.getElementById('buyError');
   err.textContent = '';
 
-  if (currentUser.role === 'user') {
-    const users = getUsers();
-    if (users[currentUser.nick] !== pass) { err.textContent = 'Неверный пароль'; return; }
-  } else {
-    if (pass !== ADMIN_PASS && !admins.some(a => a.nick === currentUser.nick && a.pass === pass)) {
-      err.textContent = 'Неверный пароль'; return;
-    }
-  }
+  if (!confirmed) { err.textContent = 'Подтвердите заказ'; return; }
 
   const btn = document.getElementById('buySubmitBtn');
   btn.textContent = 'Отправка...'; btn.disabled = true;
@@ -876,10 +907,12 @@ async function addListing() {
   const category = document.getElementById('newCategory').value.trim();
   const imageUrl = document.getElementById('newImageUrl').value.trim();
   const desc = document.getElementById('newDesc').value.trim();
+  const expiry = document.getElementById('newExpiry')?.value;
   if (!name || !price || !category) return;
   const newListing = {
     id: Date.now().toString(),
-    name, price, emoji: emoji || '📦', category, imageUrl, desc
+    name, price, emoji: emoji || '📦', category, imageUrl, desc,
+    expiry: expiry ? new Date(expiry).getTime() : null
   };
   listings.push(newListing);
   await saveRecord();
@@ -956,7 +989,6 @@ function deleteInvite(code) {
   renderInviteList();
 }
 
-// Функция для отображения и удаления администраторов
 function renderAdminList() {
   const container = document.getElementById('adminListContent');
   if (!container) return;
@@ -1099,16 +1131,13 @@ async function sendChatMessage() {
 }
 
 function switchTheme() {
+  const themes = ['', 'theme-light', 'theme-neon', 'theme-ocean', 'theme-sunset', 'theme-forest'];
   const body = document.body;
-  if (body.classList.contains('theme-light')) {
-    body.classList.remove('theme-light');
-    body.classList.add('theme-neon');
-  } else if (body.classList.contains('theme-neon')) {
-    body.classList.remove('theme-neon');
-  } else {
-    body.classList.add('theme-light');
-  }
-  localStorage.setItem('zm_theme', body.classList.toString());
+  let currentIdx = themes.findIndex(c => c === '' ? !body.className : body.classList.contains(c));
+  if (currentIdx === -1) currentIdx = 0;
+  const nextIdx = (currentIdx + 1) % themes.length;
+  body.className = themes[nextIdx];
+  localStorage.setItem('zm_theme', themes[nextIdx]);
 }
 
 function openGamePicker() { document.getElementById('gamePickerModal').classList.add('open'); }
